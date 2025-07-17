@@ -33,26 +33,45 @@ const Index = () => {
     setIsLoading(true);
     
     try {
-      // Store the question in Supabase
+      // Generate AI response using Gemini
+      const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-tutor-response', {
+        body: {
+          subject: selectedSubject,
+          question: question.trim()
+        }
+      });
+
+      if (aiError) {
+        console.error('AI generation error:', aiError);
+        throw new Error('Failed to generate AI response');
+      }
+
+      if (!aiData?.response) {
+        throw new Error('Invalid AI response received');
+      }
+
+      // Store the question and AI response in Supabase
       const { data, error } = await supabase
         .from('queries')
         .insert({
           subject: selectedSubject,
           question: question.trim(),
-          ai_response: "This is a simulated AI response. In a real implementation, this would connect to an AI service to provide personalized tutoring based on your question about " + selectedSubject + "."
+          ai_response: aiData.response
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
-      // Add to conversation
-      setConversation(prev => [...prev, {
-        id: data.id,
-        question: data.question!,
-        answer: data.ai_response!,
-        subject: data.subject!
-      }]);
+      if (data) {
+        // Add to conversation
+        setConversation(prev => [...prev, {
+          id: data.id,
+          question: data.question!,
+          answer: data.ai_response!,
+          subject: data.subject!
+        }]);
+      }
 
       setQuestion("");
       
