@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, MessageSquare, Brain, Send, Sparkles, Camera, BookOpenCheck, Users, Award } from "lucide-react";
+import { BookOpen, MessageSquare, Brain, Send, Sparkles, Camera, BookOpenCheck, Users, Award, Clock, Target, TrendingUp, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,10 +38,7 @@ const Index = () => {
     );
   }
 
-  const subjects = [
-    "Mathematics", "Physics", "Chemistry", "Biology", "History", 
-    "Literature", "Computer Science", "Economics", "Psychology", "Philosophy"
-  ];
+  // Removed predefined subjects - now using text input
 
   // Load user's conversation history
   useEffect(() => {
@@ -79,7 +76,7 @@ const Index = () => {
     if (!selectedSubject || !question.trim()) {
       toast({
         title: "Missing Information",
-        description: "Please select a subject and enter your question.",
+        description: "Please enter a subject and your question.",
         variant: "destructive"
       });
       return;
@@ -172,18 +169,12 @@ const Index = () => {
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">Subject</label>
-                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject} value={subject}>
-                        {subject}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  placeholder="Enter any subject (e.g., Mathematics, Physics, History...)"
+                  className="w-full"
+                />
               </div>
               
               <div>
@@ -254,8 +245,8 @@ const Index = () => {
         
         {/* Quick Actions */}
         <div className="mt-16">
-          <h2 className="text-2xl font-bold text-center mb-8">Quick Actions</h2>
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12">
+          <h2 className="text-2xl font-bold text-center mb-8">Student Tools & Resources</h2>
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
             <Link to="/visual-learning">
               <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full">
                 <CardContent className="pt-6">
@@ -268,13 +259,97 @@ const Index = () => {
               </Card>
             </Link>
             
-            <Card className="text-center border-secondary/20">
+            <Card className="text-center border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer h-full">
               <CardContent className="pt-6">
-                <BookOpenCheck className="w-12 h-12 text-secondary mx-auto mb-4" />
+                <Calculator className="w-12 h-12 text-secondary mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Math Solver</h3>
+                <p className="text-sm text-muted-foreground">
+                  Step-by-step solutions for math problems and equations
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full">
+              <CardContent className="pt-6">
+                <BookOpenCheck className="w-12 h-12 text-accent mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">Study Plans</h3>
                 <p className="text-sm text-muted-foreground">
                   Get personalized study schedules and learning roadmaps
                 </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full">
+              <CardContent className="pt-6">
+                <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Practice Tests</h3>
+                <p className="text-sm text-muted-foreground">
+                  Generate custom quizzes and practice exams for any subject
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer h-full">
+              <CardContent className="pt-6">
+                <Target className="w-12 h-12 text-secondary mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Learning Goals</h3>
+                <p className="text-sm text-muted-foreground">
+                  Set and track your learning objectives and milestones
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full">
+              <CardContent className="pt-6">
+                <TrendingUp className="w-12 h-12 text-accent mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Progress Tracker</h3>
+                <p className="text-sm text-muted-foreground">
+                  Monitor your learning progress and identify areas for improvement
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Study Statistics Dashboard */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-center mb-8">Your Learning Dashboard</h2>
+          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <Card className="text-center border-primary/20">
+              <CardContent className="pt-6">
+                <div className="text-3xl font-bold text-primary mb-2">{conversation.length}</div>
+                <h3 className="font-semibold mb-1">Questions Asked</h3>
+                <p className="text-xs text-muted-foreground">Total queries this session</p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-secondary/20">
+              <CardContent className="pt-6">
+                <div className="text-3xl font-bold text-secondary mb-2">
+                  {new Set(conversation.map(c => c.subject.toLowerCase())).size}
+                </div>
+                <h3 className="font-semibold mb-1">Subjects Explored</h3>
+                <p className="text-xs text-muted-foreground">Different topics covered</p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-accent/20">
+              <CardContent className="pt-6">
+                <div className="text-3xl font-bold text-accent mb-2">
+                  {conversation.length > 0 ? Math.ceil(conversation.reduce((acc, c) => acc + c.answer.length, 0) / conversation.length / 50) : 0}
+                </div>
+                <h3 className="font-semibold mb-1">Avg Response Time</h3>
+                <p className="text-xs text-muted-foreground">Minutes per answer</p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-primary/20">
+              <CardContent className="pt-6">
+                <div className="text-3xl font-bold text-primary mb-2">
+                  {conversation.length >= 10 ? '🔥' : conversation.length >= 5 ? '⭐' : '🌱'}
+                </div>
+                <h3 className="font-semibold mb-1">Learning Streak</h3>
+                <p className="text-xs text-muted-foreground">Keep up the momentum!</p>
               </CardContent>
             </Card>
           </div>
