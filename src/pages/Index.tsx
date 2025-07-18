@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, MessageSquare, Brain, Send, Sparkles } from "lucide-react";
+import { BookOpen, MessageSquare, Brain, Send, Sparkles, Camera, BookOpenCheck, Users, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Header } from "@/components/Header";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -14,11 +18,62 @@ const Index = () => {
   const [conversation, setConversation] = useState<Array<{id: string, question: string, answer: string, subject: string}>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to auth if not logged in
+  if (!loading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-lg text-muted-foreground">Loading your AI Tutor...</p>
+        </div>
+      </div>
+    );
+  }
 
   const subjects = [
     "Mathematics", "Physics", "Chemistry", "Biology", "History", 
     "Literature", "Computer Science", "Economics", "Psychology", "Philosophy"
   ];
+
+  // Load user's conversation history
+  useEffect(() => {
+    const loadConversationHistory = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('queries')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        if (data) {
+          const formattedConversation = data.map(item => ({
+            id: item.id,
+            question: item.question!,
+            answer: item.ai_response!,
+            subject: item.subject!
+          }));
+          setConversation(formattedConversation.reverse());
+        }
+      } catch (error) {
+        console.error('Error loading conversation history:', error);
+      }
+    };
+
+    loadConversationHistory();
+  }, [user]);
 
   const handleSubmitQuestion = async () => {
     if (!selectedSubject || !question.trim()) {
@@ -50,13 +105,14 @@ const Index = () => {
         throw new Error('Invalid AI response received');
       }
 
-      // Store the question and AI response in Supabase
+      // Store the question and AI response in Supabase with user_id
       const { data, error } = await supabase
         .from('queries')
         .insert({
           subject: selectedSubject,
           question: question.trim(),
-          ai_response: aiData.response
+          ai_response: aiData.response,
+          user_id: user?.id
         })
         .select()
         .maybeSingle();
@@ -91,22 +147,15 @@ const Index = () => {
     }
   };
 
+  const handleStartVisualLearning = () => {
+    navigate('/visual-learning');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Brain className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              AI Tutor
-            </h1>
-            <Sparkles className="w-8 h-8 text-secondary" />
-          </div>
-          <p className="text-xl text-muted-foreground">
-            Your personal AI-powered learning companion
-          </p>
-        </div>
+        <Header onStartVisualLearning={handleStartVisualLearning} />
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {/* Question Input Section */}
@@ -203,10 +252,38 @@ const Index = () => {
           </Card>
         </div>
         
-        {/* Features Section */}
+        {/* Quick Actions */}
         <div className="mt-16">
+          <h2 className="text-2xl font-bold text-center mb-8">Quick Actions</h2>
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12">
+            <Link to="/visual-learning">
+              <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <Camera className="w-12 h-12 text-primary mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">Visual Learning</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Generate images and visual explanations for complex topics
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+            
+            <Card className="text-center border-secondary/20">
+              <CardContent className="pt-6">
+                <BookOpenCheck className="w-12 h-12 text-secondary mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Study Plans</h3>
+                <p className="text-sm text-muted-foreground">
+                  Get personalized study schedules and learning roadmaps
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Features Section */}
+        <div className="mt-8">
           <h2 className="text-2xl font-bold text-center mb-8">Why Choose AI Tutor?</h2>
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             <Card className="text-center border-primary/20">
               <CardContent className="pt-6">
                 <BookOpen className="w-12 h-12 text-primary mx-auto mb-4" />
@@ -229,7 +306,17 @@ const Index = () => {
             
             <Card className="text-center border-accent/20">
               <CardContent className="pt-6">
-                <MessageSquare className="w-12 h-12 text-accent mx-auto mb-4" />
+                <Camera className="w-12 h-12 text-accent mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Visual Learning</h3>
+                <p className="text-sm text-muted-foreground">
+                  Generate images and diagrams to visualize complex concepts
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-primary/20">
+              <CardContent className="pt-6">
+                <MessageSquare className="w-12 h-12 text-primary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">Conversation History</h3>
                 <p className="text-sm text-muted-foreground">
                   Track your learning progress and revisit past questions
