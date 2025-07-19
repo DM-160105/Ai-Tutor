@@ -37,6 +37,15 @@ const VisualLearning = () => {
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to generate visual explanations.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -46,7 +55,7 @@ const VisualLearning = () => {
           subject: selectedSubject,
           topic: topic.trim(),
           description: description.trim(),
-          user_id: user?.id
+          user_id: user.id
         }
       });
 

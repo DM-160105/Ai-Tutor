@@ -1,7 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,97 +20,132 @@ serve(async (req) => {
   try {
     const { subject, topic, description, user_id } = await req.json();
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
-    }
-
-    if (!subject || !topic) {
-      throw new Error('Subject and topic are required');
+    if (!subject || !topic || !user_id) {
+      throw new Error('Subject, topic, and user_id are required');
     }
 
     console.log('Generating visual explanation for:', { subject, topic, user_id });
 
-    // Create a detailed prompt for image generation
+    // Initialize Supabase client
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
+    // Create a detailed prompt for image generation using LLama Scout
     const imagePrompt = `Create an educational diagram or illustration about ${topic} in the context of ${subject}. ${description ? `Additional details: ${description}. ` : ''}Make it visually clear, educational, and suitable for learning. Style: clean, modern educational illustration with clear labels and visual elements that explain the concept effectively.`;
 
-    // Generate the image using OpenAI
-    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+    // Generate the image using LLama Scout model
+    const imageResponse = await fetch('https://llama4.llamameta.net/generate-image', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
         prompt: imagePrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'high',
-        output_format: 'png'
+        model: 'scout',
+        width: 1024,
+        height: 1024,
+        quality: 'high'
       }),
     });
 
     if (!imageResponse.ok) {
-      const errorData = await imageResponse.text();
-      console.error('OpenAI Image API error:', errorData);
-      throw new Error('Failed to generate image');
-    }
+      console.error('LLama Scout API error status:', imageResponse.status);
+      // Fallback to OpenAI if LLama Scout fails
+      if (!openAIApiKey) {
+        throw new Error('Both LLama Scout and OpenAI are unavailable');
+      }
 
-    const imageData = await imageResponse.json();
-    
-    if (!imageData.data || !imageData.data[0]) {
-      throw new Error('No image data received from OpenAI');
-    }
+      const fallbackResponse = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-image-1',
+          prompt: imagePrompt,
+          n: 1,
+          size: '1024x1024',
+          quality: 'high',
+          output_format: 'png'
+        }),
+      });
 
-    // For gpt-image-1, the response contains base64 data
-    const imageBase64 = imageData.data[0].b64_json;
-    const imageUrl = `data:image/png;base64,${imageBase64}`;
+      if (!fallbackResponse.ok) {
+        throw new Error('Both image generation services failed');
+      }
+
+      const fallbackData = await fallbackResponse.json();
+      const imageBase64 = fallbackData.data[0].b64_json;
+      var imageUrl = `data:image/png;base64,${imageBase64}`;
+    } else {
+      const imageData = await imageResponse.json();
+      var imageUrl = imageData.image_url || imageData.url;
+    }
 
     // Generate detailed explanation using ChatGPT
-    const explanationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert educator specializing in ${subject}. Provide comprehensive, clear explanations that help students understand complex concepts through visual learning.`
-          },
-          {
-            role: 'user',
-            content: `Provide a detailed explanation about "${topic}" in the context of ${subject}. ${description ? `Additional context: ${description}. ` : ''}
+    let explanation = '';
+    if (openAIApiKey) {
+      const explanationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert educator specializing in ${subject}. Provide comprehensive, clear explanations that help students understand complex concepts through visual learning.`
+            },
+            {
+              role: 'user',
+              content: `Provide a detailed explanation about "${topic}" in the context of ${subject}. ${description ? `Additional context: ${description}. ` : ''}
 
-            Please structure your response with:
-            1. A clear definition or overview
-            2. Key components or elements
-            3. How it works or why it's important
-            4. Real-world applications or examples
-            5. Common misconceptions or things to remember
+              Please structure your response with:
+              1. A clear definition or overview
+              2. Key components or elements
+              3. How it works or why it's important
+              4. Real-world applications or examples
+              5. Common misconceptions or things to remember
 
-            Make it educational, engaging, and suitable for visual learning. The explanation should complement a visual diagram or illustration.`
-          }
-        ],
-        max_tokens: 1500,
-        temperature: 0.7,
-      }),
-    });
+              Make it educational, engaging, and suitable for visual learning. The explanation should complement a visual diagram or illustration.`
+            }
+          ],
+          max_tokens: 1500,
+          temperature: 0.7,
+        }),
+      });
 
-    if (!explanationResponse.ok) {
-      const errorData = await explanationResponse.text();
-      console.error('OpenAI Chat API error:', errorData);
-      throw new Error('Failed to generate explanation');
+      if (explanationResponse.ok) {
+        const explanationData = await explanationResponse.json();
+        explanation = explanationData.choices[0].message.content;
+      }
     }
 
-    const explanationData = await explanationResponse.json();
-    const explanation = explanationData.choices[0].message.content;
+    // Save to Supabase
+    const { data: savedImage, error: saveError } = await supabase
+      .from('generated_images')
+      .insert({
+        user_id: user_id,
+        subject: subject,
+        topic: topic,
+        description: description || '',
+        image_url: imageUrl,
+        explanation: explanation
+      })
+      .select()
+      .single();
+
+    if (saveError) {
+      console.error('Error saving to Supabase:', saveError);
+      // Continue without saving if there's an error
+    }
 
     console.log('Successfully generated visual explanation');
 
     return new Response(JSON.stringify({ 
+      id: savedImage?.id,
       image: imageUrl,
       explanation: explanation,
       topic: topic,
