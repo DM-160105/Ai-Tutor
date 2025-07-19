@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -29,57 +30,94 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-    // Create a detailed prompt for image generation using LLama Scout
+    // Create a detailed prompt for image generation
     const imagePrompt = `Create an educational diagram or illustration about ${topic} in the context of ${subject}. ${description ? `Additional details: ${description}. ` : ''}Make it visually clear, educational, and suitable for learning. Style: clean, modern educational illustration with clear labels and visual elements that explain the concept effectively.`;
 
-    // Generate the image using LLama Scout model
-    const imageResponse = await fetch('https://llama4.llamameta.net/generate-image', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: imagePrompt,
-        model: 'scout',
-        width: 1024,
-        height: 1024,
-        quality: 'high'
-      }),
-    });
+    let imageUrl = '';
 
-    if (!imageResponse.ok) {
-      console.error('LLama Scout API error status:', imageResponse.status);
-      // Fallback to OpenAI if LLama Scout fails
-      if (!openAIApiKey) {
-        throw new Error('Both LLama Scout and OpenAI are unavailable');
+    // Try Gemini first if API key is available
+    if (geminiApiKey) {
+      try {
+        console.log('Attempting image generation with Gemini...');
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: imagePrompt,
+            sampleCount: 1,
+            aspectRatio: "1:1",
+            safetySettings: [
+              {
+                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold: "BLOCK_LOW_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_HATE_SPEECH", 
+                threshold: "BLOCK_LOW_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_LOW_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold: "BLOCK_LOW_AND_ABOVE"
+              }
+            ]
+          }),
+        });
+
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json();
+          console.log('Gemini response:', geminiData);
+          if (geminiData.images && geminiData.images[0]) {
+            imageUrl = `data:image/png;base64,${geminiData.images[0].bytesBase64Encoded}`;
+            console.log('Successfully generated image with Gemini');
+          }
+        } else {
+          console.error('Gemini API error:', geminiResponse.status, await geminiResponse.text());
+        }
+      } catch (geminiError) {
+        console.error('Gemini generation error:', geminiError);
       }
+    }
 
-      const fallbackResponse = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-image-1',
-          prompt: imagePrompt,
-          n: 1,
-          size: '1024x1024',
-          quality: 'high',
-          output_format: 'png'
-        }),
-      });
+    // Fallback to OpenAI if Gemini fails
+    if (!imageUrl && openAIApiKey) {
+      try {
+        console.log('Falling back to OpenAI...');
+        const openAIResponse = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-image-1',
+            prompt: imagePrompt,
+            n: 1,
+            size: '1024x1024',
+            quality: 'high',
+            output_format: 'png'
+          }),
+        });
 
-      if (!fallbackResponse.ok) {
-        throw new Error('Both image generation services failed');
+        if (openAIResponse.ok) {
+          const openAIData = await openAIResponse.json();
+          imageUrl = `data:image/png;base64,${openAIData.data[0].b64_json}`;
+          console.log('Successfully generated image with OpenAI');
+        } else {
+          console.error('OpenAI API error:', openAIResponse.status);
+        }
+      } catch (openAIError) {
+        console.error('OpenAI generation error:', openAIError);
       }
+    }
 
-      const fallbackData = await fallbackResponse.json();
-      const imageBase64 = fallbackData.data[0].b64_json;
-      var imageUrl = `data:image/png;base64,${imageBase64}`;
-    } else {
-      const imageData = await imageResponse.json();
-      var imageUrl = imageData.image_url || imageData.url;
+    if (!imageUrl) {
+      throw new Error('All image generation services failed or are unavailable');
     }
 
     // Generate detailed explanation using ChatGPT
