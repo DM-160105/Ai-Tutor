@@ -46,6 +46,38 @@ const Auth = () => {
     }
   };
 
+  const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+  });
+
+  if (error) throw error;
+
+  // Supabase OAuth will redirect — so you usually handle the profile creation in a callback route.
+  // But in case you're using PKCE or not relying on redirect:
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      const user = session.user;
+
+      const { id, email, user_metadata } = user;
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: id,
+          full_name: user_metadata.full_name || '',
+          email: email,
+          avatar_url: user_metadata.avatar_url || '',
+        });
+
+      if (profileError) {
+        console.error('Error creating user profile:', profileError);
+        throw profileError;
+      }
+    }
+  });
+};
+
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
       {/* Background Video */}
