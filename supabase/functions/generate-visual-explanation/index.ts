@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
@@ -35,59 +36,10 @@ serve(async (req) => {
 
     let imageUrl = '';
 
-    // Try Gemini first if API key is available
-    if (geminiApiKey) {
+    // Try OpenAI first since we know it works
+    if (openAIApiKey) {
       try {
-        console.log('Attempting image generation with Gemini...');
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${geminiApiKey}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            prompt: imagePrompt,
-            sampleCount: 1,
-            aspectRatio: "1:1",
-            safetySettings: [
-              {
-                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                threshold: "BLOCK_LOW_AND_ABOVE"
-              },
-              {
-                category: "HARM_CATEGORY_HATE_SPEECH", 
-                threshold: "BLOCK_LOW_AND_ABOVE"
-              },
-              {
-                category: "HARM_CATEGORY_HARASSMENT",
-                threshold: "BLOCK_LOW_AND_ABOVE"
-              },
-              {
-                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                threshold: "BLOCK_LOW_AND_ABOVE"
-              }
-            ]
-          }),
-        });
-
-        if (geminiResponse.ok) {
-          const geminiData = await geminiResponse.json();
-          console.log('Gemini response:', geminiData);
-          if (geminiData.images && geminiData.images[0]) {
-            imageUrl = `data:image/png;base64,${geminiData.images[0].bytesBase64Encoded}`;
-            console.log('Successfully generated image with Gemini');
-          }
-        } else {
-          console.error('Gemini API error:', geminiResponse.status, await geminiResponse.text());
-        }
-      } catch (geminiError) {
-        console.error('Gemini generation error:', geminiError);
-      }
-    }
-
-    // Fallback to OpenAI if Gemini fails
-    if (!imageUrl && openAIApiKey) {
-      try {
-        console.log('Falling back to OpenAI...');
+        console.log('Attempting image generation with OpenAI...');
         const openAIResponse = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
           headers: {
@@ -100,65 +52,111 @@ serve(async (req) => {
             n: 1,
             size: '1024x1024',
             quality: 'high',
-            output_format: 'png'
+            response_format: 'b64_json'
           }),
         });
 
         if (openAIResponse.ok) {
           const openAIData = await openAIResponse.json();
-          imageUrl = `data:image/png;base64,${openAIData.data[0].b64_json}`;
-          console.log('Successfully generated image with OpenAI');
+          if (openAIData.data && openAIData.data[0] && openAIData.data[0].b64_json) {
+            imageUrl = `data:image/png;base64,${openAIData.data[0].b64_json}`;
+            console.log('Successfully generated image with OpenAI');
+          }
         } else {
-          console.error('OpenAI API error:', openAIResponse.status);
+          const errorText = await openAIResponse.text();
+          console.error('OpenAI API error:', openAIResponse.status, errorText);
         }
       } catch (openAIError) {
         console.error('OpenAI generation error:', openAIError);
       }
     }
 
+    // Fallback to Gemini if OpenAI fails
+    if (!imageUrl && geminiApiKey) {
+      try {
+        console.log('Falling back to Gemini...');
+        // Use the correct Gemini endpoint for text-to-image
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: imagePrompt,
+            sampleCount: 1,
+            aspectRatio: "1:1"
+          }),
+        });
+
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json();
+          console.log('Gemini response received');
+          if (geminiData.images && geminiData.images[0] && geminiData.images[0].bytesBase64Encoded) {
+            imageUrl = `data:image/png;base64,${geminiData.images[0].bytesBase64Encoded}`;
+            console.log('Successfully generated image with Gemini');
+          }
+        } else {
+          const errorText = await geminiResponse.text();
+          console.error('Gemini API error:', geminiResponse.status, errorText);
+        }
+      } catch (geminiError) {
+        console.error('Gemini generation error:', geminiError);
+      }
+    }
+
     if (!imageUrl) {
-      throw new Error('All image generation services failed or are unavailable');
+      throw new Error('All image generation services failed or are unavailable. Please check your API keys.');
     }
 
     // Generate detailed explanation using ChatGPT
     let explanation = '';
     if (openAIApiKey) {
-      const explanationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert educator specializing in ${subject}. Provide comprehensive, clear explanations that help students understand complex concepts through visual learning.`
-            },
-            {
-              role: 'user',
-              content: `Provide a detailed explanation about "${topic}" in the context of ${subject}. ${description ? `Additional context: ${description}. ` : ''}
+      try {
+        const explanationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert educator specializing in ${subject}. Provide comprehensive, clear explanations that help students understand complex concepts through visual learning.`
+              },
+              {
+                role: 'user',
+                content: `Provide a detailed explanation about "${topic}" in the context of ${subject}. ${description ? `Additional context: ${description}. ` : ''}
 
-              Please structure your response with:
-              1. A clear definition or overview
-              2. Key components or elements
-              3. How it works or why it's important
-              4. Real-world applications or examples
-              5. Common misconceptions or things to remember
+                Please structure your response with:
+                1. A clear definition or overview
+                2. Key components or elements
+                3. How it works or why it's important
+                4. Real-world applications or examples
+                5. Common misconceptions or things to remember
 
-              Make it educational, engaging, and suitable for visual learning. The explanation should complement a visual diagram or illustration.`
-            }
-          ],
-          max_tokens: 1500,
-          temperature: 0.7,
-        }),
-      });
+                Make it educational, engaging, and suitable for visual learning. The explanation should complement a visual diagram or illustration.`
+              }
+            ],
+            max_tokens: 1500,
+            temperature: 0.7,
+          }),
+        });
 
-      if (explanationResponse.ok) {
-        const explanationData = await explanationResponse.json();
-        explanation = explanationData.choices[0].message.content;
+        if (explanationResponse.ok) {
+          const explanationData = await explanationResponse.json();
+          explanation = explanationData.choices[0].message.content;
+        } else {
+          console.error('Failed to generate explanation:', explanationResponse.status);
+          explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
+        }
+      } catch (explanationError) {
+        console.error('Error generating explanation:', explanationError);
+        explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
       }
+    } else {
+      explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
     }
 
     // Save to Supabase
