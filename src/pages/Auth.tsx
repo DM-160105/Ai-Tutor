@@ -127,13 +127,19 @@ const Auth = () => {
                     <Input
                       id="fullName"
                       type="text"
-                      placeholder="Enter your full name"
+                      placeholder="Enter your full name (minimum 2 characters)"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="pl-10"
                       required={!isLogin}
+                      minLength={2}
+                      pattern="[A-Za-z ]{2,}"
+                      title="Full name must be at least 2 characters long and contain only letters and spaces"
                     />
                   </div>
+                  {!isLogin && fullName && fullName.length < 2 && (
+                    <p className="text-sm text-destructive">Full name must be at least 2 characters long</p>
+                  )}
                 </div>
               )}
 

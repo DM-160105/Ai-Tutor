@@ -202,9 +202,21 @@ const Index = () => {
           {/* Conversation Section */}
           <Card className="border-secondary/20 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
-                Conversation History
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Conversation History
+                </div>
+                {conversation.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setConversation([])}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    Clear History
+                  </Button>
+                )}
               </CardTitle>
               <CardDescription>
                 Your questions and AI tutor responses
@@ -269,15 +281,17 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full">
-              <CardContent className="pt-6">
-                <BookOpenCheck className="w-12 h-12 text-accent mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Study Plans</h3>
-                <p className="text-sm text-muted-foreground">
-                  Get personalized study schedules and learning roadmaps
-                </p>
-              </CardContent>
-            </Card>
+            <Link to="/book-recommendations">
+              <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <BookOpenCheck className="w-12 h-12 text-accent mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">Book Recommendations</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Get AI-curated book recommendations for any subject
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
 
             <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full">
               <CardContent className="pt-6">

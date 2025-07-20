@@ -10,6 +10,7 @@ import { lazy, Suspense } from "react";
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const VisualLearning = lazy(() => import("./pages/VisualLearning"));
+const BookRecommendations = lazy(() => import("./pages/BookRecommendations"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/visual-learning" element={<VisualLearning />} />
+              <Route path="/book-recommendations" element={<BookRecommendations />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
