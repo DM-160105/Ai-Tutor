@@ -257,8 +257,8 @@ const Index = () => {
         
         {/* Quick Actions */}
         <div className="mt-16">
-          <h2 className="text-2xl font-bold text-center mb-8">Student Tools & Resources</h2>
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
+          <h2 className="text-2xl font-bold text-center mb-8">Quick Tools</h2>
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
             <Link to="/visual-learning">
               <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full">
                 <CardContent className="pt-6">
@@ -270,16 +270,6 @@ const Index = () => {
                 </CardContent>
               </Card>
             </Link>
-            
-            <Card className="text-center border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer h-full">
-              <CardContent className="pt-6">
-                <Calculator className="w-12 h-12 text-secondary mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Math Solver</h3>
-                <p className="text-sm text-muted-foreground">
-                  Step-by-step solutions for math problems and equations
-                </p>
-              </CardContent>
-            </Card>
 
             <Link to="/book-recommendations">
               <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full">
@@ -293,35 +283,17 @@ const Index = () => {
               </Card>
             </Link>
 
-            <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full">
-              <CardContent className="pt-6">
-                <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Practice Tests</h3>
-                <p className="text-sm text-muted-foreground">
-                  Generate custom quizzes and practice exams for any subject
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer h-full">
-              <CardContent className="pt-6">
-                <Target className="w-12 h-12 text-secondary mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Learning Goals</h3>
-                <p className="text-sm text-muted-foreground">
-                  Set and track your learning objectives and milestones
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full">
-              <CardContent className="pt-6">
-                <TrendingUp className="w-12 h-12 text-accent mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Progress Tracker</h3>
-                <p className="text-sm text-muted-foreground">
-                  Monitor your learning progress and identify areas for improvement
-                </p>
-              </CardContent>
-            </Card>
+            <Link to="/student-tools">
+              <Card className="text-center border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <TrendingUp className="w-12 h-12 text-secondary mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">All Student Tools</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Access all learning tools and resources in one place
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
 

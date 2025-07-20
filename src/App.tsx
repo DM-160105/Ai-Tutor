@@ -9,8 +9,10 @@ import { lazy, Suspense } from "react";
 // Lazy load components for better performance
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const VisualLearning = lazy(() => import("./pages/VisualLearning"));
 const BookRecommendations = lazy(() => import("./pages/BookRecommendations"));
+const StudentTools = lazy(() => import("./pages/StudentTools"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -40,8 +42,10 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/visual-learning" element={<VisualLearning />} />
               <Route path="/book-recommendations" element={<BookRecommendations />} />
+              <Route path="/student-tools" element={<StudentTools />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
