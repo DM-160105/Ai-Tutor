@@ -111,7 +111,7 @@ Visit http://localhost:3000 in your browser to start using the app.
 
 ```
 
-##🧪 How It Works
+## 🧪 How It Works
 
 1. User submits their profile including age, subject, and goals
 
@@ -129,7 +129,7 @@ Visit http://localhost:3000 in your browser to start using the app.
 
 ---
 
-📆 Roadmap
+## 📆 Roadmap
 
 [x] Personalized lesson generator
 
