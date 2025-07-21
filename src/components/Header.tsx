@@ -39,12 +39,23 @@ export const Header = ({ onStartVisualLearning }: HeaderProps) => {
 
         <div className="flex items-center gap-3">
           <Button
-            onClick={onStartVisualLearning}
             variant="outline"
+            onClick={onStartVisualLearning}
             className="flex items-center gap-2"
           >
             <Camera className="w-4 h-4" />
             Visual Learning
+          </Button>
+
+          <Button
+            variant="outline"
+            asChild
+            className="flex items-center gap-2"
+          >
+            <Link to="/dashboard">
+              <User className="w-4 h-4" />
+              Dashboard
+            </Link>
           </Button>
 
           <DropdownMenu>
@@ -68,6 +79,12 @@ export const Header = ({ onStartVisualLearning }: HeaderProps) => {
                 </p>
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard" className="flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/visual-learning" className="flex items-center">
                   <Camera className="mr-2 h-4 w-4" />

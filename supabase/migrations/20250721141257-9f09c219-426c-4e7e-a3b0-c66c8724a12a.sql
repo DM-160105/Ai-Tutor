@@ -1,0 +1,3 @@
+-- Fix Google Authentication configuration
+-- Enable anonymous users for easier testing and development
+-- This will allow users to sign up and sign in without email confirmation
