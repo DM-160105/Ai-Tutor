@@ -150,11 +150,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
         {/* Header */}
         <Header onStartVisualLearning={handleStartVisualLearning} />
 
-        <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-4 md:gap-8 max-w-7xl mx-auto">
           {/* Question Input Section */}
           <Card className="border-primary/20 shadow-lg">
             <CardHeader>
@@ -231,7 +231,7 @@ const Index = () => {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4 max-h-[500px] overflow-y-auto">
+                <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto">
                   {conversation.map((item) => (
                     <div key={item.id} className="space-y-3">
                       <div className="bg-primary/10 rounded-lg p-4">
@@ -245,7 +245,7 @@ const Index = () => {
                           <Brain className="w-3 h-3" />
                           AI Tutor Response
                         </div>
-                        <p className="text-foreground">{item.answer}</p>
+                        <p className="text-foreground font-bold">{item.answer}</p>
                       </div>
                     </div>
                   ))}
@@ -258,7 +258,7 @@ const Index = () => {
         {/* Quick Actions */}
         <div className="mt-16">
           <h2 className="text-2xl font-bold text-center mb-8">Quick Tools</h2>
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto mb-12">
             <Link to="/visual-learning">
               <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full">
                 <CardContent className="pt-6">
@@ -300,7 +300,7 @@ const Index = () => {
         {/* Study Statistics Dashboard */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold text-center mb-8">Your Learning Dashboard</h2>
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             <Card className="text-center border-primary/20">
               <CardContent className="pt-6">
                 <div className="text-3xl font-bold text-primary mb-2">{conversation.length}</div>
@@ -344,7 +344,7 @@ const Index = () => {
         {/* Features Section */}
         <div className="mt-8">
           <h2 className="text-2xl font-bold text-center mb-8">Why Choose AI Tutor?</h2>
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             <Card className="text-center border-primary/20">
               <CardContent className="pt-6">
                 <BookOpen className="w-12 h-12 text-primary mx-auto mb-4" />
