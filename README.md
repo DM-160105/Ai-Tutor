@@ -1,89 +1,129 @@
+# 🧠 AI Tutor DM
 
-# 📚 AI-Based Interactive Learning Platform
-
-Welcome to the repository for the AI-Based Interactive Learning Platform — an innovative, intelligent web application designed to provide real-time academic assistance to students using AI-powered technology.
-
-## 🌟 Project Overview
-
-This project aims to address a common issue faced by learners: the lack of timely academic support during self-study. Built with a modern full-stack architecture, this platform acts as a 24/7 AI tutor that answers student queries instantly using natural language processing via the Gemini API.
-
-The system provides:
-- Instant, AI-generated answers to student questions
-- Secure authentication with session-based access
-- Historical chat tracking and subject-specific assistance
-- A clean and responsive user dashboard for review and progress tracking
-
-By combining the power of Next.js, Flask, Supabase, and Gemini, the platform ensures accessibility, scalability, and seamless interaction — empowering students across educational backgrounds to learn effectively and independently.
+An intelligent web-based learning assistant that creates personalized lessons tailored to a student's age, goals, and learning style.
 
 ---
 
-## 🧠 Core Features
+## 📚 Table of Contents
 
-- ✨ **AI Chatbot Assistant** – Real-time answers using Gemini API
-- 🔐 **User Authentication** – Secure login system with Supabase
-- 🗂️ **Chat History** – View and store past interactions
-- 📊 **Student Dashboard** – Personalized experience and easy navigation
-- 💡 **Modern UI/UX** – Built with Tailwind CSS and shadcn/ui components
+- [✨ Overview](#-overview)  
+- [🧑‍💻 User Experience](#-user-experience)  
+- [🔍 Features](#-features)  
+- [🛠️ Technology Stack](#-technology-stack)  
+- [📊 Languages & Usage](#-languages--usage)  
+- [🚀 Getting Started](#-getting-started)  
+- [🧪 How It Works](#-how-it-works)  
+- [📆 Roadmap](#-roadmap)
 
 ---
 
-## 🛠️ Tech Stack
+## ✨ Overview
 
-- **Frontend:** React + Next.js + Tailwind CSS + TypeScript
-- **Backend:** Python Flask
-- **AI Engine:** Gemini API (LLM-based)
-- **Database & Auth:** Supabase (PostgreSQL)
-- **UI Kit:** shadcn/ui
-- **Build Tool:** Vite
+**AI Tutor DM** is a dynamic educational platform powered by AI that helps users learn any subject interactively. Whether you're a student needing structured lessons or a curious learner looking to explore new topics, this app provides guided, conversational tutoring experiences.
+
+---
+
+## 🧑‍💻 User Experience
+
+### 🔹 Home Page
+- Input: age, learning goals, subject
+- Launch a personalized lesson with one click
+
+### 📘 Lesson Page
+- Custom AI-generated lesson based on inputs
+- Step-by-step teaching with interactive responses
+
+### 🧠 Q&A Support
+- Ask natural-language questions any time
+- Get contextual answers mid-lesson
+
+### 📈 Session Recap
+- Summary of covered material
+- Optional quizzes or skill checks
+- Option to continue, review, or restart
+
+---
+
+## 🔍 Features
+
+- 🎯 **Personalized Lesson Plans**  
+  Learners receive custom-tailored content based on goals and subject.
+  
+- 🤖 **Real-Time Conversational Tutoring**  
+  Engage with the AI tutor using natural language interactions.
+  
+- 🧩 **Adaptive Learning Journey**  
+  Content difficulty evolves based on progress and answers.
+  
+- ✍️ **Embedded Assessments**  
+  Quick checks and quizzes built into every lesson.
+  
+- 📥 **Progress Summary per Session**  
+  Review what you've learned and plan next steps easily.
+
+---
+
+## 🛠️ Technology Stack
+
+| Technology | Description |
+|------------|-------------|
+| ![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white) | Frontend UI Framework |
+| ![Tailwind](https://img.shields.io/badge/-Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white) | Styling & Design System |
+| ![Node.js](https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white) | Backend API |
+| ![Express](https://img.shields.io/badge/-Express-black?logo=express&logoColor=white) | Server Framework |
+| ![OpenAI](https://img.shields.io/badge/-OpenAI-412991?logo=openai&logoColor=white) | AI & NLP Integration |
+| ![Supabase](https://img.shields.io/badge/-Supabase-3ECF8E?logo=supabase&logoColor=white) | User Data & Session Storage |
+| ![Vercel](https://img.shields.io/badge/-Vercel-000000?logo=vercel&logoColor=white) | Hosting & Deployment |
+
+---
+
+## 📊 Languages & Usage
+
+| Language | Usage | Progress |
+|----------|-------|----------|
+| ![JavaScript](https://img.shields.io/badge/-JavaScript-F7DF1E?logo=javascript&logoColor=black) | Frontend Logic | ████████████████░░ 85% |
+| ![HTML](https://img.shields.io/badge/-HTML5-E34F26?logo=html5&logoColor=white) | Page Structure | ██████████░░░░░░ 60% |
+| ![CSS](https://img.shields.io/badge/-CSS3-1572B6?logo=css3&logoColor=white) | Styling via Tailwind | ██████████░░░░░░ 60% |
+| ![Node.js](https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white) | Backend Logic | ███████████░░░░░ 70% |
+| ![Markdown](https://img.shields.io/badge/-Markdown-000000?logo=markdown&logoColor=white) | Documentation | ████████░░░░░░░ 50% |
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-Make sure you have Node.js, npm, and Python installed on your system.
-
-### Local Setup
+Follow these steps to run the project locally:
 
 ```bash
-# Step 1: Clone the repository
-git clone <YOUR_REPO_URL>
-
-# Step 2: Navigate into the project folder
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install dependencies
+git clone https://github.com/yourusername/ai-tutor-dm.git
+cd ai-tutor-dm
 npm install
 
-# Step 4: Start the development server
+Create a .env file and configure your environment variables:
+
+OPENAI_API_KEY=your-api-key
+DATABASE_URL=your-database-url
+
+Run the development server:
+
 npm run dev
-```
 
-Ensure your Flask backend is running and connected to the same Supabase instance.
+Visit http://localhost:3000 in your browser to start using the app.
 
----
-
-## 💡 How to Use
-
-- Sign up or log in as a student.
-- Ask any academic question through the chatbot interface.
-- Get an instant AI-generated answer.
-- View past conversations and continue exploring your doubts.
-- Learn independently with confidence and AI support.
 
 ---
 
-## 📌 Future Enhancements
+🧪 How It Works
 
-- Voice-based chat interaction
-- Admin and teacher dashboard for analytics
-- Subject categorization and query filtering
-- Smart recommendations based on learning patterns
+1. User submits their profile including age, subject, and goals
 
----
 
-## 📚 Educational Impact
+2. AI engine generates a lesson tailored to those parameters
 
-This platform is aligned with **UN SDG 4 – Quality Education**, supporting inclusive, equitable, and accessible learning experiences for students of all backgrounds. By using AI to provide personalized support, it bridges learning gaps and empowers students to take control of their educational journey.
 
----
+3. User progresses through the content with real-time Q&A
+
+
+4. AI adapts lesson difficulty and flow based on performance
+
+
+5. A summary and quiz wrap up each session to reinforce learning
