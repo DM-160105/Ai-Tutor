@@ -109,10 +109,9 @@ npm run dev
 
 Visit http://localhost:3000 in your browser to start using the app.
 
+```
 
----
-
-🧪 How It Works
+##🧪 How It Works
 
 1. User submits their profile including age, subject, and goals
 
@@ -127,3 +126,17 @@ Visit http://localhost:3000 in your browser to start using the app.
 
 
 5. A summary and quiz wrap up each session to reinforce learning
+
+---
+
+📆 Roadmap
+
+[x] Personalized lesson generator
+
+[x] Conversational AI chat
+
+[ ] Progress tracker with visual dashboard
+
+[ ] Gamified experience: XP, streaks, rewards
+
+[ ] Mobile-first redesign
