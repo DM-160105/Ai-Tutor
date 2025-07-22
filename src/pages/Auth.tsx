@@ -17,7 +17,7 @@ const Auth = () => {
   
   const { user, signIn, signUp, signInWithGoogle } = useAuth();
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated - moved after all hooks
   if (user) {
     return <Navigate to="/" replace />;
   }
