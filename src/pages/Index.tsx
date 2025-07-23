@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { Link } from "react-router-dom";
+import { LandingScene3D } from "@/components/3D/LandingScene3D";
 
 const Index = () => {
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -149,14 +150,17 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* 3D Landing Scene */}
+      <LandingScene3D />
+      
       <div className="container mx-auto px-4 py-4 md:py-8">
         {/* Header */}
         <Header onStartVisualLearning={handleStartVisualLearning} />
 
         <div className="grid lg:grid-cols-2 gap-4 md:gap-8 max-w-7xl mx-auto">
           {/* Question Input Section */}
-          <Card className="border-primary/20 shadow-lg">
+          <Card className="border-primary/20 shadow-lg bg-background/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5" />
@@ -200,7 +204,7 @@ const Index = () => {
           </Card>
 
           {/* Conversation Section */}
-          <Card className="border-secondary/20 shadow-lg">
+          <Card className="border-secondary/20 shadow-lg bg-background/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -260,7 +264,7 @@ const Index = () => {
           <h2 className="text-2xl font-bold text-center mb-8">Quick Tools</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto mb-12">
             <Link to="/visual-learning">
-              <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full">
+              <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full bg-background/80 backdrop-blur-sm">
                 <CardContent className="pt-6">
                   <Camera className="w-12 h-12 text-primary mx-auto mb-4" />
                   <h3 className="font-semibold mb-2">Visual Learning</h3>
@@ -272,7 +276,7 @@ const Index = () => {
             </Link>
 
             <Link to="/book-recommendations">
-              <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full">
+              <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full bg-background/80 backdrop-blur-sm">
                 <CardContent className="pt-6">
                   <BookOpenCheck className="w-12 h-12 text-accent mx-auto mb-4" />
                   <h3 className="font-semibold mb-2">Book Recommendations</h3>
@@ -284,7 +288,7 @@ const Index = () => {
             </Link>
 
             <Link to="/student-tools">
-              <Card className="text-center border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer h-full">
+              <Card className="text-center border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer h-full bg-background/80 backdrop-blur-sm">
                 <CardContent className="pt-6">
                   <TrendingUp className="w-12 h-12 text-secondary mx-auto mb-4" />
                   <h3 className="font-semibold mb-2">All Student Tools</h3>
@@ -301,7 +305,7 @@ const Index = () => {
         <div className="mt-12">
           <h2 className="text-2xl font-bold text-center mb-8">Your Learning Dashboard</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
-            <Card className="text-center border-primary/20">
+            <Card className="text-center border-primary/20 bg-background/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <div className="text-3xl font-bold text-primary mb-2">{conversation.length}</div>
                 <h3 className="font-semibold mb-1">Questions Asked</h3>
@@ -309,7 +313,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center border-secondary/20">
+            <Card className="text-center border-secondary/20 bg-background/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <div className="text-3xl font-bold text-secondary mb-2">
                   {new Set(conversation.map(c => c.subject.toLowerCase())).size}
@@ -319,7 +323,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center border-accent/20">
+            <Card className="text-center border-accent/20 bg-background/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <div className="text-3xl font-bold text-accent mb-2">
                   {conversation.length > 0 ? Math.ceil(conversation.reduce((acc, c) => acc + c.answer.length, 0) / conversation.length / 50) : 0}
@@ -329,7 +333,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center border-primary/20">
+            <Card className="text-center border-primary/20 bg-background/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <div className="text-3xl font-bold text-primary mb-2">
                   {conversation.length >= 10 ? '🔥' : conversation.length >= 5 ? '⭐' : '🌱'}
@@ -345,7 +349,7 @@ const Index = () => {
         <div className="mt-8">
           <h2 className="text-2xl font-bold text-center mb-8">Why Choose AI Tutor?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
-            <Card className="text-center border-primary/20">
+            <Card className="text-center border-primary/20 bg-background/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <BookOpen className="w-12 h-12 text-primary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">Multi-Subject Support</h3>
@@ -355,7 +359,7 @@ const Index = () => {
               </CardContent>
             </Card>
             
-            <Card className="text-center border-secondary/20">
+            <Card className="text-center border-secondary/20 bg-background/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <Brain className="w-12 h-12 text-secondary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">Intelligent Responses</h3>
@@ -365,7 +369,7 @@ const Index = () => {
               </CardContent>
             </Card>
             
-            <Card className="text-center border-accent/20">
+            <Card className="text-center border-accent/20 bg-background/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <Camera className="w-12 h-12 text-accent mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">Visual Learning</h3>
@@ -375,7 +379,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center border-primary/20">
+            <Card className="text-center border-primary/20 bg-background/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <MessageSquare className="w-12 h-12 text-primary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">Conversation History</h3>
