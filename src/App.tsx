@@ -40,7 +40,6 @@ const App = () => (
           <AuthProvider>
             <Toaster />
             <Sonner />
-            <EquationVideo />
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Index />} />
