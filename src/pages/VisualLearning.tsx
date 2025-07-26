@@ -88,15 +88,15 @@ const VisualLearning = () => {
   };
 
   const handleDownload = () => {
-    if (generatedImage) {
-      const link = document.createElement('a');
-      link.href = generatedImage;
-      link.download = `${topic.replace(/\s+/g, '_')}_visual_explanation.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
+  if (generatedImage) {
+    const link = document.createElement('a');
+    link.href = `data:image/png;base64,${generatedImage}`;
+    link.download = `${topic.replace(/\s+/g, '_')}_visual_explanation.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+};
 
   const handleShare = async () => {
     if (navigator.share && generatedImage) {
@@ -259,14 +259,10 @@ const VisualLearning = () => {
                   <div className="bg-secondary/10 rounded-lg p-4">
                     <h3 className="font-semibold mb-3">Visual Representation</h3>
                     <img
-  src={generatedImage || ''}
+  src={`data:image/png;base64,${generatedImage}`}
   alt={`Visual explanation of ${topic}`}
   className="w-full rounded-lg shadow-md"
   loading="lazy"
-  onError={(e) => {
-    e.currentTarget.style.display = 'none';
-    console.error('⚠️ Failed to load image:', generatedImage);
-  }}
 />
 
 {generatedImage && (
