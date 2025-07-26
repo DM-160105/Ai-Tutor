@@ -258,11 +258,25 @@ const VisualLearning = () => {
                   {/* Generated Image */}
                   <div className="bg-secondary/10 rounded-lg p-4">
                     <h3 className="font-semibold mb-3">Visual Representation</h3>
-                    <img 
-                      src={generatedImage} 
-                      alt={`Visual explanation of ${topic}`}
-                      className="w-full rounded-lg shadow-md"
-                    />
+                    <img
+  src={generatedImage || ''}
+  alt={`Visual explanation of ${topic}`}
+  className="w-full rounded-lg shadow-md"
+  loading="lazy"
+  onError={(e) => {
+    e.currentTarget.style.display = 'none';
+    console.error('⚠️ Failed to load image:', generatedImage);
+  }}
+/>
+
+{generatedImage && (
+  <p className="text-xs text-muted-foreground break-all mt-2">
+    <strong>Image URL:</strong>{' '}
+    <a href={generatedImage} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">
+      {generatedImage}
+    </a>
+  </p>
+)}
                   </div>
 
                   {/* Explanation */}
