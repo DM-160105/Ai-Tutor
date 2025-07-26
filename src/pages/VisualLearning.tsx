@@ -265,13 +265,13 @@ const VisualLearning = () => {
   loading="lazy"
 />
 
-{generatedImage && (
-  <p className="text-xs text-muted-foreground break-all mt-2">
-    <strong>Image URL:</strong>{' '}
-    <a href={generatedImage} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">
-      {generatedImage}
-    </a>
-  </p>
+  {generatedImage && (
+  <img
+    src={`data:image/png;base64,${generatedImage}`}
+    alt={`Visual explanation of ${topic}`}
+    className="w-full rounded-lg shadow-md mt-4"
+    loading="lazy"
+  />
 )}
                   </div>
 
