@@ -13,6 +13,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function generateFilename(subject: string, topic: string): string {
+  return `${subject.replace(/\s+/g, '_')}_${topic.replace(/\s+/g, '_')}_${Date.now()}.png`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -28,39 +32,15 @@ serve(async (req) => {
     const imagePrompt = `Create an educational diagram or illustration about ${topic} in the context of ${subject}. ${description ? `Additional details: ${description}. ` : ''}Make it visually clear, educational, and suitable for learning. Style: clean, modern educational illustration with clear labels and visual elements that explain the concept effectively.`;
 
     let imageUrl = '';
+    let imageBase64 = '';
 
-    if (openAIApiKey) {
+    if (!imageBase64 && stabilityApiKey) {
       try {
-        const openAIResponse = await fetch('https://api.openai.com/v1/images/generations', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-image-1',
-            prompt: imagePrompt,
-            n: 1,
-            size: '1024x1024',
-            quality: 'high',
-            response_format: 'b64_json'
-          }),
-        });
+        console.log('🔍 Trying Stability AI...');
+        console.log('🔑 Stability API Key present:', !!stabilityApiKey);
+        console.log('📤 Prompt sent to Stability AI:', imagePrompt);
 
-        if (openAIResponse.ok) {
-          const openAIData = await openAIResponse.json();
-          if (openAIData.data?.[0]?.b64_json) {
-            imageUrl = `data:image/png;base64,${openAIData.data[0].b64_json}`;
-          }
-        }
-      } catch (error) {
-        console.error('OpenAI error:', error);
-      }
-    }
-
-    if (!imageUrl && stabilityApiKey) {
-      try {
-        const stabilityResponse = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-512-v2-1/text-to-image', {
+        const stabilityResponse = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${stabilityApiKey}`,
@@ -68,20 +48,19 @@ serve(async (req) => {
             'Accept': 'application/json',
           },
           body: JSON.stringify({
-            text_prompts: [{ text: imagePrompt }],
-            cfg_scale: 8,
-            clip_guidance_preset: 'FAST_BLUE',
-            height: 512,
-            width: 512,
-            samples: 1,
-            steps: 30
+            prompt: imagePrompt,
+            output_format: 'base64_json'
           })
         });
 
+        console.log('📥 Stability Response Status:', stabilityResponse.status);
+        const rawStabilityText = await stabilityResponse.text();
+        console.log('🧾 Stability Response Body:', rawStabilityText);
+
         if (stabilityResponse.ok) {
-          const stabilityData = await stabilityResponse.json();
-          if (stabilityData.artifacts?.[0]?.base64) {
-            imageUrl = `data:image/png;base64,${stabilityData.artifacts[0].base64}`;
+          const stabilityData = JSON.parse(rawStabilityText);
+          if (stabilityData.image) {
+            imageBase64 = stabilityData.image;
           }
         }
       } catch (error) {
@@ -89,34 +68,27 @@ serve(async (req) => {
       }
     }
 
-    if (!imageUrl && geminiApiKey) {
-      try {
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${geminiApiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: imagePrompt,
-            sampleCount: 1,
-            aspectRatio: "1:1"
-          }),
-        });
-
-        if (geminiResponse.ok) {
-          const geminiData = await geminiResponse.json();
-          if (geminiData.images?.[0]?.bytesBase64Encoded) {
-            imageUrl = `data:image/png;base64,${geminiData.images[0].bytesBase64Encoded}`;
-          }
-        }
-      } catch (error) {
-        console.error('Gemini error:', error);
-      }
+    if (!imageBase64) {
+      throw new Error('Image generation failed. Please check your API key and quota.');
     }
 
-    if (!imageUrl) {
-      throw new Error('All image generation services failed or are unavailable. Please check your API keys.');
+    // Upload to Supabase Storage
+    const fileName = generateFilename(subject, topic);
+    const { data: storageData, error: storageError } = await supabase.storage
+      .from('generated-images')
+      .upload(fileName, Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0)), {
+        contentType: 'image/png',
+        upsert: true
+      });
+
+    if (storageError) {
+      console.error('❌ Supabase Storage upload failed:', storageError);
+      throw new Error('Failed to upload image to storage.');
     }
 
-    let explanation = '';
+    imageUrl = supabase.storage.from('generated-images').getPublicUrl(fileName).data.publicUrl;
+
+    let explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
     if (openAIApiKey) {
       try {
         const explanationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -157,10 +129,7 @@ serve(async (req) => {
         }
       } catch (error) {
         console.error('Explanation generation error:', error);
-        explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
       }
-    } else {
-      explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
     }
 
     const { data: savedImage, error: saveError } = await supabase
