@@ -258,14 +258,7 @@ const VisualLearning = () => {
                   {/* Generated Image */}
                   <div className="bg-secondary/10 rounded-lg p-4">
                     <h3 className="font-semibold mb-3">Visual Representation</h3>
-                    <img
-  src={`data:image/png;base64,${generatedImage}`}
-  alt={`Visual explanation of ${topic}`}
-  className="w-full rounded-lg shadow-md"
-  loading="lazy"
-/>
-
-  {generatedImage && (
+                    {generatedImage && (
   <img
     src={`data:image/png;base64,${generatedImage}`}
     alt={`Visual explanation of ${topic}`}
