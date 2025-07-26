@@ -37,28 +37,27 @@ serve(async (req) => {
     if (!imageBase64 && stabilityApiKey) {
       try {
         console.log('🔍 Trying Stability AI...');
-        console.log('🔑 Stability API Key present:', !!stabilityApiKey);
-        console.log('📤 Prompt sent to Stability AI:', imagePrompt);
+        console.log('📤 Prompt:', imagePrompt);
+
+        const formData = new FormData();
+        formData.append('prompt', imagePrompt);
+        formData.append('output_format', 'base64_json');
 
         const stabilityResponse = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${stabilityApiKey}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            'Accept': 'application/json'
           },
-          body: JSON.stringify({
-            prompt: imagePrompt,
-            output_format: 'base64_json'
-          })
+          body: formData
         });
 
         console.log('📥 Stability Response Status:', stabilityResponse.status);
-        const rawStabilityText = await stabilityResponse.text();
-        console.log('🧾 Stability Response Body:', rawStabilityText);
+        const rawText = await stabilityResponse.text();
+        console.log('🧾 Stability Response Body:', rawText);
 
         if (stabilityResponse.ok) {
-          const stabilityData = JSON.parse(rawStabilityText);
+          const stabilityData = JSON.parse(rawText);
           if (stabilityData.image) {
             imageBase64 = stabilityData.image;
           }
@@ -72,7 +71,6 @@ serve(async (req) => {
       throw new Error('Image generation failed. Please check your API key and quota.');
     }
 
-    // Upload to Supabase Storage
     const fileName = generateFilename(subject, topic);
     const { data: storageData, error: storageError } = await supabase.storage
       .from('generated-images')
