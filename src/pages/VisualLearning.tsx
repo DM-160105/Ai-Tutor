@@ -90,7 +90,9 @@ const VisualLearning = () => {
   const handleDownload = () => {
   if (generatedImage) {
     const link = document.createElement('a');
-    link.href = `data:image/png;base64,${generatedImage}`;
+    link.href = generatedImage?.startsWith("http")
+  ? generatedImage
+  : `data:image/png;base64,${generatedImage}`;
     link.download = `${topic.replace(/\s+/g, '_')}_visual_explanation.png`;
     document.body.appendChild(link);
     link.click();
@@ -260,11 +262,15 @@ const VisualLearning = () => {
                     <h3 className="font-semibold mb-3">Visual Representation</h3>
                     {generatedImage && (
   <img
-    src={`data:image/png;base64,${generatedImage}`}
-    alt={`Visual explanation of ${topic}`}
-    className="w-full rounded-lg shadow-md mt-4"
-    loading="lazy"
-  />
+  src={
+    generatedImage?.startsWith("http")
+      ? generatedImage // It's a hosted URL
+      : `data:image/png;base64,${generatedImage}` // It's base64
+  }
+  alt={`Visual explanation of ${topic}`}
+  className="w-full rounded-lg shadow-md mt-4"
+  loading="lazy"
+/>
 )}
                   </div>
 
