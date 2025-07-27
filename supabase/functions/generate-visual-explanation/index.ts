@@ -30,46 +30,45 @@ serve(async (req) => {
 
     let imageUrl = '';
 
-    if (!imageUrl && stabilityApiKey) {
-      try {
-        console.log('🔍 Trying Stability AI...');
-        console.log('📤 Prompt:', imagePrompt);
+    // 1. Try Stability AI
+if (!imageUrl && stabilityApiKey) {
+  try {
+    console.log('🔍 Trying Stability AI...');
+    console.log('📤 Prompt:', imagePrompt);
 
-        const formData = new FormData();
-        formData.append('prompt', imagePrompt);
-        formData.append('output_format', 'png');
+    const formData = new FormData();
+    formData.append('prompt', imagePrompt);
+    formData.append('output_format', 'png');
 
-        const stabilityResponse = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${stabilityApiKey}`,
-            'Accept': 'application/json'
-          },
-          body: formData
-        });
+    const stabilityResponse = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${stabilityApiKey}`,
+        'Accept': 'application/json'
+      },
+      body: formData
+    });
 
-        console.log('📥 Stability Response Status:', stabilityResponse.status);
-        const rawText = await stabilityResponse.text();
-        console.log('🧾 Stability Response Body:', rawText);
+    console.log('📥 Stability Response Status:', stabilityResponse.status);
+    const rawText = await stabilityResponse.text();
+    console.log('🧾 Stability Response Body:', rawText);
 
-        if (stabilityResponse.ok) {
-          const stabilityData = JSON.parse(rawText);
-          if (stabilityData.image) {
-            imageUrl = stabilityData.image;
-          }
-        }
-      } catch (error) {
-        console.error('Stability AI error:', error);
+    if (stabilityResponse.ok) {
+      const stabilityData = JSON.parse(rawText);
+      if (stabilityData.image) {
+        imageUrl = stabilityData.image;
+        console.log('✅ Stability AI returned image.');
       }
     }
+  } catch (error) {
+    console.error('❌ Stability AI error:', error);
+  }
+}
 
-    if (!imageUrl) {
-      throw new Error('Image generation failed. Please check your API key and quota.');
-    }
-    
-    if (!imageUrl && hfApiKey) {
+// 2. Fallback to Hugging Face if Stability AI failed
+if (!imageUrl && hfApiKey) {
   try {
-    console.log('🔍 Trying Hugging Face FLUX.1-dev...');
+    console.log('🔁 Fallback: Trying Hugging Face FLUX.1-dev...');
     console.log('📤 Prompt:', imagePrompt);
 
     const fluxResponse = await fetch("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev", {
@@ -88,16 +87,21 @@ serve(async (req) => {
     if (fluxResponse.ok) {
       const buffer = await fluxResponse.arrayBuffer();
       const base64Image = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(buffer)))}`;
-      imageUrl = base64Image; // optionally upload this to Supabase Storage if needed
+      imageUrl = base64Image;
+      console.log('✅ Hugging Face FLUX returned image.');
     } else {
       const errText = await fluxResponse.text();
       console.error('FLUX.1-dev Error Response:', errText);
     }
   } catch (error) {
-    console.error('FLUX.1-dev generation error:', error);
+    console.error('❌ Hugging Face FLUX generation error:', error);
   }
-    }
+}
 
+// 3. If still no image, throw error
+if (!imageUrl) {
+  throw new Error('Image generation failed using both Stability AI and Hugging Face.');
+}
     let explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
     if (openAIApiKey) {
       try {
