@@ -97,6 +97,33 @@ if (!imageUrl && hfApiKey) {
     console.error('❌ Hugging Face FLUX generation error:', error);
   }
 }
+    
+if (imageUrl && imageUrl.startsWith('data:image')) {
+  try {
+    const base64Data = imageUrl.split(',')[1];
+    const binary = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    const fileName = `flux-fallback-${crypto.randomUUID()}.png`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('generated-images') // change to your bucket name if different
+      .upload(`generated/${fileName}`, binary.buffer, {
+        contentType: 'image/png',
+        upsert: false,
+      });
+
+    if (!uploadError && uploadData?.path) {
+      const { data: publicUrlData } = supabase.storage
+        .from('generated-images')
+        .getPublicUrl(uploadData.path);
+      imageUrl = publicUrlData.publicUrl;
+      console.log('✅ Uploaded FLUX fallback image to Supabase:', imageUrl);
+    } else {
+      console.error('❌ Upload failed:', uploadError);
+    }
+  } catch (uploadErr) {
+    console.error('⚠️ Error uploading FLUX image to Supabase:', uploadErr);
+  }
+}
 
 // 3. If still no image, throw error
 if (!imageUrl) {
