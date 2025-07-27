@@ -5,6 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const stabilityApiKey = Deno.env.get('STABILITY_API_KEY');
+const hfApiKey = Deno.env.get('HUGGINGFACE_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -64,6 +65,37 @@ serve(async (req) => {
 
     if (!imageUrl) {
       throw new Error('Image generation failed. Please check your API key and quota.');
+    }
+    
+    if (!imageUrl && hfApiKey) {
+  try {
+    console.log('🔍 Trying Hugging Face FLUX.1-dev...');
+    console.log('📤 Prompt:', imagePrompt);
+
+    const fluxResponse = await fetch("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${hfApiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        inputs: imagePrompt
+      })
+    });
+
+    console.log('📥 FLUX.1-dev Response Status:', fluxResponse.status);
+
+    if (fluxResponse.ok) {
+      const buffer = await fluxResponse.arrayBuffer();
+      const base64Image = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(buffer)))}`;
+      imageUrl = base64Image; // optionally upload this to Supabase Storage if needed
+    } else {
+      const errText = await fluxResponse.text();
+      console.error('FLUX.1-dev Error Response:', errText);
+    }
+  } catch (error) {
+    console.error('FLUX.1-dev generation error:', error);
+  }
     }
 
     let explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
