@@ -36,6 +36,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+  window.history.replaceState({}, document.title, window.location.pathname);
+        }
       }
     );
 
