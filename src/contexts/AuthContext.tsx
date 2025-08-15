@@ -105,8 +105,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ? 'http://localhost:3000/'
       : 'https://ai-tutor-dm.lovable.app/';
 
-  alert(`Redirect URL this build will use: ${redirectUrl}`); // TEMP: shows on phone
-
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: redirectUrl }
