@@ -1,151 +1,198 @@
-import { Brain, Sparkles, LogOut, User, Camera, Settings, BookOpen } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel 
+  DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  BookOpen, 
+  Camera, 
+  Calculator, 
+  Settings, 
+  LogOut, 
+  User, 
+  Menu,
+  BookOpenCheck,
+  TrendingUp,
+  Home 
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
 import { ThemeSelector } from "./ThemeSelector";
+import { Link, useNavigate } from "react-router-dom";
 
 interface HeaderProps {
-  onStartVisualLearning: () => void;
+  onStartVisualLearning?: () => void;
 }
 
-export const Header = ({ onStartVisualLearning }: HeaderProps) => {
+export function Header({ onStartVisualLearning }: HeaderProps) {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
-  const getUserInitials = (email: string) => {
-    return email.substring(0, 2).toUpperCase();
-  };
+  const tools = [
+    { 
+      name: "Visual Learning", 
+      href: "/visual-learning", 
+      icon: Camera, 
+      description: "Generate images and visual explanations" 
+    },
+    { 
+      name: "Book Recommendations", 
+      href: "/book-recommendations", 
+      icon: BookOpenCheck, 
+      description: "AI-curated reading suggestions" 
+    },
+    { 
+      name: "Student Tools", 
+      href: "/student-tools", 
+      icon: TrendingUp, 
+      description: "All learning resources in one place" 
+    }
+  ];
 
   return (
-    <div className="text-center mb-6 md:mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-1 md:gap-2">
-          <Brain className="w-8 h-8 md:w-10 md:h-10 text-primary" />
-          <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent drop-shadow-lg">
-            AI Tutor
-          </h1>
-          <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-secondary" />
-        </div>
-
-        <div className="flex items-center gap-2 md:gap-3">
-          <div className="hidden md:flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onStartVisualLearning}
-              className="flex items-center gap-2"
-            >
-              <Camera className="w-4 h-4" />
-              <span className="hidden lg:inline">Visual Learning</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="flex items-center gap-2"
-            >
-              <Link to="/dashboard">
-                <User className="w-4 h-4" />
-                <span className="hidden lg:inline">Dashboard</span>
-              </Link>
-            </Button>
+    <header className="w-full mb-8">
+      <div className="flex items-center justify-between">
+        {/* Logo/Brand */}
+        <Link to="/" className="flex items-center gap-3 hover-scale">
+          <div className="bg-gradient-to-br from-primary to-secondary p-2 rounded-xl shadow-lg">
+            <BookOpen className="w-6 h-6 text-primary-foreground" />
           </div>
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              AI Tutor
+            </h1>
+            <p className="text-xs text-muted-foreground">Personalized Learning Assistant</p>
+          </div>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-4">
+          <Link to="/">
+            <Button variant="ghost" className="hover-scale">
+              <Home className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+          </Link>
+
+          {/* Tools Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="hover-scale">
+                <Calculator className="w-4 h-4 mr-2" />
+                Tools
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-64 animate-scale-in">
+              {tools.map((tool) => (
+                <DropdownMenuItem key={tool.name} asChild className="cursor-pointer">
+                  <Link to={tool.href} className="flex items-start gap-3 p-3">
+                    <tool.icon className="w-4 h-4 mt-0.5 text-primary" />
+                    <div>
+                      <div className="font-medium">{tool.name}</div>
+                      <div className="text-xs text-muted-foreground">{tool.description}</div>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <ThemeSelector />
 
-          <DropdownMenu>
+          {/* User Menu */}
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="hover-scale">
+                  <User className="w-4 h-4 mr-2" />
+                  {user.user_metadata?.full_name || user.email}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 animate-scale-in">
+                <DropdownMenuItem disabled>
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </nav>
+
+        {/* Mobile Navigation */}
+        <div className="md:hidden">
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-primary/20 hover:border-primary/40 transition-colors">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage 
-                    src={user?.user_metadata?.avatar_url} 
-                    alt={user?.user_metadata?.full_name || user?.email || ''} 
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-semibold">
-                    {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
+              <Button variant="ghost" size="sm" className="hover-scale">
+                <Menu className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64 p-2" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal p-3">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage 
-                        src={user?.user_metadata?.avatar_url} 
-                        alt={user?.user_metadata?.full_name || user?.email || ''} 
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-semibold text-lg">
-                        {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <p className="text-sm font-semibold leading-none">
-                        {user?.user_metadata?.full_name || 'Welcome!'}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground mt-1">
-                        {user?.email}
-                      </p>
+            <DropdownMenuContent align="end" className="w-64 animate-scale-in">
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/" className="flex items-center gap-2">
+                  <Home className="w-4 h-4" />
+                  Home
+                </Link>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              {tools.map((tool) => (
+                <DropdownMenuItem key={tool.name} asChild className="cursor-pointer">
+                  <Link to={tool.href} className="flex items-start gap-3 p-2">
+                    <tool.icon className="w-4 h-4 mt-0.5 text-primary" />
+                    <div>
+                      <div className="font-medium">{tool.name}</div>
+                      <div className="text-xs text-muted-foreground">{tool.description}</div>
                     </div>
-                  </div>
-                </div>
-              </DropdownMenuLabel>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="p-3 cursor-pointer">
-                <Link to="/dashboard" className="flex items-center">
-                  <User className="mr-3 h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="p-3 cursor-pointer">
-                <Link to="/visual-learning" className="flex items-center">
-                  <Camera className="mr-3 h-4 w-4" />
-                  <span>Visual Learning</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="p-3 cursor-pointer">
-                <Link to="/book-recommendations" className="flex items-center">
-                  <BookOpen className="mr-3 h-4 w-4" />
-                  <span>Book Recommendations</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="p-3 cursor-pointer">
-                <Link to="/student-tools" className="flex items-center">
-                  <Brain className="mr-3 h-4 w-4" />
-                  <span>Student Tools</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleSignOut}
-                className="text-destructive focus:text-destructive p-3 cursor-pointer"
-              >
-                <LogOut className="mr-3 h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
+              
+              <div className="p-2">
+                <ThemeSelector />
+              </div>
+              
+              {user && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled>
+                    <User className="w-4 h-4 mr-2" />
+                    {user.user_metadata?.full_name || user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-      <p className="text-lg md:text-xl text-muted-foreground">
-        Your personal AI-powered learning companion
-      </p>
-    </div>
+    </header>
   );
-};
+}

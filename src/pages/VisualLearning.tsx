@@ -138,7 +138,7 @@ const VisualLearning = () => {
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {/* Input Section */}
-          <Card className="border-primary/20 shadow-lg">
+          <Card className="border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Camera className="w-5 h-5" />
@@ -188,7 +188,7 @@ const VisualLearning = () => {
               <Button 
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="w-full"
+                className="w-full hover-scale"
                 size="lg"
               >
                 <Send className="w-4 h-4 mr-2" />
@@ -217,7 +217,8 @@ const VisualLearning = () => {
           </Card>
 
           {/* Output Section */}
-          <Card className="border-secondary/20 shadow-lg">
+          <Card className="border-secondary/20 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in"
+            style={{animationDelay: '0.1s'}}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -231,10 +232,10 @@ const VisualLearning = () => {
                 </div>
                 {generatedImage && (
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handleDownload}>
+                    <Button variant="outline" size="sm" onClick={handleDownload} className="hover-scale">
                       <Download className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleShare}>
+                    <Button variant="outline" size="sm" onClick={handleShare} className="hover-scale">
                       <Share2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -274,13 +275,13 @@ const VisualLearning = () => {
 )}
                   </div>
 
-                  {/* Explanation */}
-                  <div className="bg-primary/10 rounded-lg p-4">
-                    <h3 className="font-semibold mb-3">Detailed Explanation</h3>
-                    <div className="prose prose-sm max-w-none">
-                      <p className="text-foreground whitespace-pre-wrap">{explanation}</p>
-                    </div>
-                  </div>
+                   {/* Explanation */}
+                   <div className="bg-primary/10 rounded-lg p-4 animate-fade-in">
+                     <h3 className="font-semibold mb-3">Detailed Explanation</h3>
+                     <div className="prose prose-sm max-w-none">
+                       <p className="text-foreground whitespace-pre-wrap leading-relaxed">{explanation}</p>
+                     </div>
+                   </div>
                 </div>
               )}
             </CardContent>

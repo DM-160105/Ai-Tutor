@@ -1,20 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Brain, Mail, Lock, User, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Eye, EyeOff, Mail, Lock, User, LogIn, UserPlus } from "lucide-react";
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [loading, setLoading] = useState(false);
-  
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { toast } = useToast();
   const { user, signIn, signUp, signInWithGoogle } = useAuth();
 
   // Redirect if already authenticated - moved after all hooks
@@ -24,80 +25,85 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      if (isLogin) {
-        await signIn(email, password);
-      } else {
+      if (isSignUp) {
+        if (!fullName.trim()) {
+          toast({
+            title: "Missing Information",
+            description: "Please enter your full name.",
+            variant: "destructive"
+          });
+          return;
+        }
         await signUp(email, password, fullName);
+        toast({
+          title: "Account Created",
+          description: "Welcome to AI Tutor! You can now start learning."
+        });
+      } else {
+        await signIn(email, password);
+        toast({
+          title: "Welcome Back",
+          description: "Successfully signed in to AI Tutor."
+        });
       }
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      toast({
+        title: "Authentication Error",
+        description: error.message || "An error occurred during authentication.",
+        variant: "destructive"
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
+    setIsLoading(true);
     try {
       await signInWithGoogle();
+      toast({
+        title: "Welcome",
+        description: "Successfully signed in with Google."
+      });
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      toast({
+        title: "Sign-in Error",
+        description: error.message || "Failed to sign in with Google.",
+        variant: "destructive"
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
-      {/* Background Video */}
-      <div className="absolute inset-0 w-full h-full">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover opacity-20"
-        >
-          <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background/80 to-secondary/10"></div>
-      </div>
-      
-      <div className="w-full max-w-md relative z-10">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Brain className="w-10 h-10 text-primary" />
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              AI Tutor
-            </h1>
-            <Sparkles className="w-10 h-10 text-secondary" />
-          </div>
-          <p className="text-lg text-muted-foreground">
-            {isLogin ? "Welcome back to your learning journey" : "Start your AI-powered learning journey"}
-          </p>
-        </div>
-
-        <Card className="border-primary/20 shadow-xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">
-              {isLogin ? "Sign In" : "Create Account"}
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-2xl border-primary/20 hover:shadow-3xl transition-all duration-500 animate-fade-in hover-glow">
+          <CardHeader className="text-center pb-8">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              {isSignUp ? "Join AI Tutor" : "Welcome Back"}
             </CardTitle>
-            <CardDescription>
-              {isLogin 
-                ? "Enter your credentials to access your AI tutor" 
-                : "Join thousands of students learning with AI"
+            <CardDescription className="text-base mt-2">
+              {isSignUp 
+                ? "Create your account to start your learning journey" 
+                : "Sign in to continue your personalized learning experience"
               }
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          
+          <CardContent className="space-y-6">
             {/* Google Sign In */}
             <Button
-              type="button"
-              variant="outline"
               onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="w-full"
-              size="lg"
+              disabled={isLoading}
+              variant="outline"
+              className="w-full h-12 text-base hover-scale hover-glow border-2"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -110,7 +116,7 @@ const Auth = () => {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
+                <span className="w-full border-t border-muted" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
@@ -118,83 +124,103 @@ const Auth = () => {
             </div>
 
             {/* Email Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {isSignUp && (
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input
                       id="fullName"
                       type="text"
-                      placeholder="Enter your full name (minimum 2 characters)"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="pl-10"
-                      required={!isLogin}
-                      minLength={2}
-                      pattern="[A-Za-z ]{2,}"
-                      title="Full name must be at least 2 characters long and contain only letters and spaces"
+                      placeholder="Enter your full name"
+                      className="pl-10 h-12 transition-all duration-300 focus:ring-2 focus:ring-primary/20"
+                      required={isSignUp}
                     />
                   </div>
-                  {!isLogin && fullName && fullName.length < 2 && (
-                    <p className="text-sm text-destructive">Full name must be at least 2 characters long</p>
-                  )}
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    placeholder="Enter your email"
+                    className="pl-10 h-12 transition-all duration-300 focus:ring-2 focus:ring-primary/20"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     id="password"
-                    type="password"
-                    placeholder="Enter your password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    placeholder="Enter your password"
+                    className="pl-10 pr-10 h-12 transition-all duration-300 focus:ring-2 focus:ring-primary/20"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
-              <Button type="submit" disabled={loading} className="w-full" size="lg">
-                {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-12 text-base hover-scale hover-glow font-semibold"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
+                    {isSignUp ? "Creating Account..." : "Signing In..."}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {isSignUp ? <UserPlus className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+                    {isSignUp ? "Create Account" : "Sign In"}
+                  </div>
+                )}
               </Button>
             </form>
 
-            <div className="text-center">
+            {/* Toggle between sign in and sign up */}
+            <div className="text-center pt-4 border-t border-muted">
+              <p className="text-sm text-muted-foreground">
+                {isSignUp ? "Already have an account?" : "Don't have an account?"}
+              </p>
               <Button
-                type="button"
                 variant="link"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sm"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-primary hover:text-primary/80 font-medium p-0 h-auto mt-2 hover-scale"
               >
-                {isLogin 
-                  ? "Don't have an account? Sign up" 
-                  : "Already have an account? Sign in"
-                }
+                {isSignUp ? "Sign in here" : "Create account here"}
               </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* Footer */}
+        <div className="text-center mt-8 text-sm text-muted-foreground animate-fade-in" style={{animationDelay: '0.3s'}}>
+          <p>Secure • Private • Powered by AI</p>
+        </div>
       </div>
     </div>
   );
