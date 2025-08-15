@@ -123,17 +123,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return { error };
 };
 
-  if (error) {
-    toast({
-      title: "Google Sign In Error",
-      description: error.message,
-      variant: "destructive"
-    });
-  }
-
-  return { error };
-};
-
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     
