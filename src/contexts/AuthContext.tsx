@@ -101,9 +101,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
   const redirectUrl =
-    window.location.hostname === 'localhost'
-      ? 'http://localhost:3000/'
-      : 'https://ai-tutor-dm.lovable.app/';
+    process.env.NODE_ENV === 'production'
+      ? 'https://ai-tutor-dm.lovable.app/'
+      : 'http://localhost:3000/';
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -117,10 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       variant: "destructive"
     });
   }
-
-  return { error };
 };
-
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     
