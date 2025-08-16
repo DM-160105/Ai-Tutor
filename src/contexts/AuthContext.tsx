@@ -117,10 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       variant: "destructive"
     });
   }
-
-  return { error };
 };
-  
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     
