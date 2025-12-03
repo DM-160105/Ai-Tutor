@@ -100,24 +100,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
-  const redirectUrl =
-    process.env.NODE_ENV === 'production'
-      ? 'https://ai-tutor-dm.lovable.app/'
-      : 'http://localhost:3000/';
+    const redirectUrl =
+      process.env.NODE_ENV === 'production'
+        ? 'https://ai-tutor-dm.lovable.app/'
+        : 'http://localhost:3000/';
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: redirectUrl }
-  });
-
-  if (error) {
-    toast({
-      title: "Google Sign In Error",
-      description: error.message,
-      variant: "destructive"
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: redirectUrl }
     });
-  }
-};
+
+    if (error) {
+      toast({
+        title: "Google Sign In Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+
+    return { error };
+  };
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     

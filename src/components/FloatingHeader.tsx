@@ -3,42 +3,32 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BookOpen, Brain, Camera, User, Settings, LogOut, Menu, Home, History, Calculator, BookOpenCheck } from "lucide-react";
+import { BookOpen, Brain, Camera, User, Settings, LogOut, Menu, Home, Calculator, BookOpenCheck, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ThemeSelector } from "./ThemeSelector";
 
 export const FloatingHeader = () => {
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const controlHeader = () => {
-      if (typeof window !== 'undefined') {
-        if (window.scrollY > lastScrollY && window.scrollY > 100) {
-          setIsVisible(false);
-        } else {
-          setIsVisible(true);
-        }
-        setLastScrollY(window.scrollY);
-      }
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('scroll', controlHeader);
-      return () => window.removeEventListener('scroll', controlHeader);
-    }
-  }, [lastScrollY]);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navigationItems = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Visual Learning", href: "/visual-learning", icon: Camera },
-    { name: "Book Recommendations", href: "/book-recommendations", icon: BookOpenCheck },
-    { name: "Student Tools", href: "/student-tools", icon: Calculator },
+    { name: "Visual", href: "/visual-learning", icon: Camera },
+    { name: "Books", href: "/book-recommendations", icon: BookOpenCheck },
+    { name: "Tools", href: "/student-tools", icon: Calculator },
     { name: "Dashboard", href: "/dashboard", icon: Brain },
   ];
 
@@ -59,9 +49,10 @@ export const FloatingHeader = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50 transition-all duration-300",
-        isVisible ? "translate-y-0" : "-translate-y-full",
-        "animate-fade-in"
+        "fixed top-0 left-0 right-0 z-50 smooth-transition",
+        isScrolled 
+          ? "bg-card/95 border-b border-border/50 shadow-lg" 
+          : "bg-transparent"
       )}
     >
       <div className="container mx-auto px-4">
@@ -71,27 +62,28 @@ export const FloatingHeader = () => {
             className="flex items-center gap-2 cursor-pointer hover-scale"
             onClick={() => handleNavigation('/')}
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
+            <div className="w-9 h-9 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="font-bold text-xl gradient-text hidden sm:block">
               AI Tutor
             </span>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1 p-1 rounded-2xl bg-muted/50">
             {navigationItems.map((item) => {
               const Icon = item.icon;
+              const isActive = isActivePage(item.href);
               return (
                 <Button
                   key={item.name}
-                  variant={isActivePage(item.href) ? "default" : "ghost"}
+                  variant="ghost"
                   size="sm"
                   onClick={() => handleNavigation(item.href)}
                   className={cn(
-                    "hover-scale transition-all duration-200",
-                    isActivePage(item.href) && "bg-primary text-primary-foreground shadow-glow"
+                    "hover-scale px-4 rounded-xl smooth-transition",
+                    isActive && "bg-primary text-primary-foreground shadow-md"
                   )}
                 >
                   <Icon className="w-4 h-4 mr-2" />
@@ -107,34 +99,34 @@ export const FloatingHeader = () => {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="hover-scale">
-                  <Avatar className="w-7 h-7">
+                <Button variant="ghost" size="sm" className="hover-scale rounded-xl">
+                  <Avatar className="w-8 h-8">
                     <AvatarImage src={user?.user_metadata?.avatar_url} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary">
                       <User className="w-4 h-4" />
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-sm border border-border/50">
+              <DropdownMenuContent align="end" className="w-56 glass-card border-border/50">
                 <DropdownMenuItem 
                   onClick={() => handleNavigation('/dashboard')}
-                  className="cursor-pointer hover-scale"
+                  className="cursor-pointer hover-scale rounded-lg"
                 >
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => handleNavigation('/dashboard')}
-                  className="cursor-pointer hover-scale"
+                  className="cursor-pointer hover-scale rounded-lg"
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-border/50" />
                 <DropdownMenuItem 
                   onClick={handleSignOut}
-                  className="cursor-pointer text-destructive hover-scale"
+                  className="cursor-pointer text-destructive hover-scale rounded-lg"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -145,33 +137,34 @@ export const FloatingHeader = () => {
             {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden hover-scale">
+                <Button variant="ghost" size="sm" className="md:hidden hover-scale rounded-xl">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] bg-background/95 backdrop-blur-sm">
-                <div className="flex flex-col gap-4 mt-8">
+              <SheetContent side="right" className="w-[280px] glass-card border-l border-border/50">
+                <div className="flex flex-col gap-2 mt-8">
                   {navigationItems.map((item) => {
                     const Icon = item.icon;
+                    const isActive = isActivePage(item.href);
                     return (
                       <Button
                         key={item.name}
-                        variant={isActivePage(item.href) ? "default" : "ghost"}
+                        variant={isActive ? "default" : "ghost"}
                         onClick={() => handleNavigation(item.href)}
-                        className="w-full justify-start hover-scale"
+                        className="w-full justify-start hover-scale rounded-xl"
                       >
-                        <Icon className="w-4 h-4 mr-2" />
+                        <Icon className="w-4 h-4 mr-3" />
                         {item.name}
                       </Button>
                     );
                   })}
-                  <div className="border-t border-border/50 pt-4">
+                  <div className="border-t border-border/50 pt-4 mt-4">
                     <Button
                       variant="ghost"
                       onClick={handleSignOut}
-                      className="w-full justify-start text-destructive hover-scale"
+                      className="w-full justify-start text-destructive hover-scale rounded-xl"
                     >
-                      <LogOut className="w-4 h-4 mr-2" />
+                      <LogOut className="w-4 h-4 mr-3" />
                       Sign Out
                     </Button>
                   </div>
