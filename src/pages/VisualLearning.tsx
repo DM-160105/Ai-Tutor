@@ -1,3 +1,5 @@
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -278,9 +280,11 @@ const VisualLearning = () => {
                   {/* Explanation */}
                   <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
                     <h3 className="font-medium text-sm mb-3">Explanation</h3>
-                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                      {explanation}
-                    </p>
+                   <div className="prose prose-sm max-w-none text-foreground">
+  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+    {explanation}
+  </ReactMarkdown>
+</div>
                   </div>
                 </div>
               )}
