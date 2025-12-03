@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Camera, ImageIcon, Book, ArrowLeft, Send, Download, Share2 } from "lucide-react";
+import { Camera, ImageIcon, Book, ArrowLeft, Send, Download, Share2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { FloatingHeader } from "@/components/FloatingHeader";
 
 const VisualLearning = () => {
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -31,17 +32,15 @@ const VisualLearning = () => {
     if (!selectedSubject || !topic.trim()) {
       toast({
         title: "Missing Information",
-        description: "Please select a subject and enter a topic.",
-        variant: "destructive"
+        description: "Please select a subject and enter a topic."
       });
       return;
     }
 
     if (!user) {
       toast({
-        title: "Authentication Required",
-        description: "Please sign in to generate visual explanations.",
-        variant: "destructive"
+        title: "Sign In Required",
+        description: "Please sign in to generate visuals."
       });
       return;
     }
@@ -49,7 +48,6 @@ const VisualLearning = () => {
     setIsLoading(true);
     
     try {
-      // Generate visual explanation using AI
       const { data: visualData, error: visualError } = await supabase.functions.invoke('generate-visual-explanation', {
         body: {
           subject: selectedSubject,
@@ -61,7 +59,7 @@ const VisualLearning = () => {
 
       if (visualError) {
         console.error('Visual generation error:', visualError);
-        throw new Error('Failed to generate visual explanation');
+        throw new Error('Failed to generate visual');
       }
 
       if (!visualData?.image || !visualData?.explanation) {
@@ -72,15 +70,14 @@ const VisualLearning = () => {
       setExplanation(visualData.explanation);
       
       toast({
-        title: "Visual Explanation Generated!",
-        description: "Your AI-powered visual learning content is ready."
+        title: "Generated!",
+        description: "Your visual content is ready."
       });
     } catch (error) {
-      console.error('Error generating visual explanation:', error);
+      console.error('Error generating visual:', error);
       toast({
         title: "Error",
-        description: "Failed to generate visual explanation. Please try again.",
-        variant: "destructive"
+        description: "Failed to generate. Try again."
       });
     } finally {
       setIsLoading(false);
@@ -88,76 +85,83 @@ const VisualLearning = () => {
   };
 
   const handleDownload = () => {
-  if (generatedImage) {
-    const link = document.createElement('a');
-    link.href = generatedImage?.startsWith("http")
-  ? generatedImage
-  : `data:image/png;base64,${generatedImage}`;
-    link.download = `${topic.replace(/\s+/g, '_')}_visual_explanation.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-};
+    if (generatedImage) {
+      const link = document.createElement('a');
+      link.href = generatedImage?.startsWith("http")
+        ? generatedImage
+        : `data:image/png;base64,${generatedImage}`;
+      link.download = `${topic.replace(/\s+/g, '_')}_visual.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   const handleShare = async () => {
     if (navigator.share && generatedImage) {
       try {
         await navigator.share({
-          title: `Visual Explanation: ${topic}`,
+          title: `Visual: ${topic}`,
           text: explanation.substring(0, 100) + '...',
           url: window.location.href
         });
       } catch (error) {
-        // Fallback to copying link
         navigator.clipboard.writeText(window.location.href);
         toast({
           title: "Link Copied",
-          description: "The link has been copied to your clipboard."
+          description: "Link copied to clipboard."
         });
       }
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      <FloatingHeader />
+      
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-40 right-20 w-72 h-72 bg-accent/10 rounded-full" />
+        <div className="absolute bottom-40 left-20 w-56 h-56 bg-primary/10 rounded-full" />
+      </div>
+
+      <div className="container mx-auto px-4 pt-24 pb-8 relative z-10">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Chat
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold">Visual Learning Lab</h1>
-            <p className="text-muted-foreground">Generate images and detailed explanations for any topic</p>
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
+            <Sparkles className="w-4 h-4" />
+            Visual Learning Lab
           </div>
+          <h1 className="text-3xl font-bold mb-2">
+            Create <span className="gradient-text">Visual Content</span>
+          </h1>
+          <p className="text-muted-foreground">
+            Generate images and detailed explanations for any topic
+          </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
           {/* Input Section */}
-          <Card className="border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Camera className="w-5 h-5" />
-                Create Visual Content
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Camera className="w-5 h-5 text-primary" />
+                Create Visual
               </CardTitle>
               <CardDescription>
-                Tell us what you want to visualize and we'll create an image with a detailed explanation
+                Enter topic details to generate an image with explanation
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">Subject</label>
                 <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-xl border-border/50">
                     <SelectValue placeholder="Choose a subject" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="glass-card border-border/50">
                     {subjects.map((subject) => (
-                      <SelectItem key={subject} value={subject}>
+                      <SelectItem key={subject} value={subject} className="rounded-lg">
                         {subject}
                       </SelectItem>
                     ))}
@@ -166,76 +170,71 @@ const VisualLearning = () => {
               </div>
               
               <div>
-                <label className="text-sm font-medium mb-2 block">Topic/Concept</label>
+                <label className="text-sm font-medium mb-2 block">Topic</label>
                 <Input
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g., Photosynthesis, Newton's Laws, DNA Structure..."
-                  className="w-full"
+                  placeholder="e.g., Photosynthesis, DNA Structure..."
+                  className="h-12 input-focus rounded-xl border-border/50"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Additional Details (Optional)</label>
+                <label className="text-sm font-medium mb-2 block">Details (Optional)</label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Add any specific details you want included in the visualization..."
-                  className="min-h-[100px] resize-none"
+                  placeholder="Any specific details for the visualization..."
+                  className="min-h-[100px] resize-none input-focus rounded-xl border-border/50"
                 />
               </div>
               
               <Button 
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="w-full hover-scale"
+                className="w-full h-12 hover-scale btn-glow rounded-xl text-base font-semibold"
                 size="lg"
               >
                 <Send className="w-4 h-4 mr-2" />
-                {isLoading ? "Generating..." : "Generate Visual Explanation"}
+                {isLoading ? "Generating..." : "Generate Visual"}
               </Button>
 
               {/* Features */}
-              <div className="pt-4 border-t">
-                <h3 className="font-semibold mb-3">What you'll get:</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      <ImageIcon className="w-3 h-3 mr-1" />
-                      AI-Generated Image
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      <Book className="w-3 h-3 mr-1" />
-                      Detailed Explanation
-                    </Badge>
-                  </div>
+              <div className="pt-4 border-t border-border/30">
+                <p className="text-sm font-medium mb-3">What you get:</p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="rounded-lg">
+                    <ImageIcon className="w-3 h-3 mr-1" />
+                    AI Image
+                  </Badge>
+                  <Badge variant="secondary" className="rounded-lg">
+                    <Book className="w-3 h-3 mr-1" />
+                    Explanation
+                  </Badge>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Output Section */}
-          <Card className="border-secondary/20 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in"
-            style={{animationDelay: '0.1s'}}>
-            <CardHeader>
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <ImageIcon className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <ImageIcon className="w-5 h-5 text-accent" />
                     Generated Content
                   </CardTitle>
                   <CardDescription>
-                    Your AI-powered visual learning materials
+                    Your visual learning materials
                   </CardDescription>
                 </div>
                 {generatedImage && (
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handleDownload} className="hover-scale">
+                    <Button variant="outline" size="sm" onClick={handleDownload} className="hover-scale rounded-lg border-border/50">
                       <Download className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleShare} className="hover-scale">
+                    <Button variant="outline" size="sm" onClick={handleShare} className="hover-scale rounded-lg border-border/50">
                       <Share2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -245,43 +244,44 @@ const VisualLearning = () => {
             <CardContent>
               {!generatedImage && !isLoading ? (
                 <div className="text-center py-12">
-                  <ImageIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground text-lg mb-2">No content generated yet</p>
-                  <p className="text-sm text-muted-foreground">
-                    Fill out the form and click "Generate" to create your visual explanation
+                  <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground">
+                    Fill the form and generate to see content
                   </p>
                 </div>
               ) : isLoading ? (
                 <div className="text-center py-12">
-                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Generating your visual explanation...</p>
+                  <div className="animate-spin w-8 h-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Generating visual...</p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4 max-h-[600px] overflow-y-auto scrollbar-modern">
                   {/* Generated Image */}
-                  <div className="bg-secondary/10 rounded-lg p-4">
-                    <h3 className="font-semibold mb-3">Visual Representation</h3>
+                  <div className="bg-muted/30 rounded-xl p-4 border border-border/30">
+                    <h3 className="font-medium text-sm mb-3">Visual</h3>
                     {generatedImage && (
-  <img
-  src={
-    generatedImage?.startsWith("http")
-      ? generatedImage // It's a hosted URL
-      : `data:image/png;base64,${generatedImage}` // It's base64
-  }
-  alt={`Visual explanation of ${topic}`}
-  className="w-full rounded-lg shadow-md mt-4"
-  loading="lazy"
-/>
-)}
+                      <img
+                        src={
+                          generatedImage?.startsWith("http")
+                            ? generatedImage
+                            : `data:image/png;base64,${generatedImage}`
+                        }
+                        alt={`Visual of ${topic}`}
+                        className="w-full rounded-lg shadow-md"
+                        loading="lazy"
+                      />
+                    )}
                   </div>
 
-                   {/* Explanation */}
-                   <div className="bg-primary/10 rounded-lg p-4 animate-fade-in">
-                     <h3 className="font-semibold mb-3">Detailed Explanation</h3>
-                     <div className="prose prose-sm max-w-none">
-                       <p className="text-foreground whitespace-pre-wrap leading-relaxed">{explanation}</p>
-                     </div>
-                   </div>
+                  {/* Explanation */}
+                  <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
+                    <h3 className="font-medium text-sm mb-3">Explanation</h3>
+                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                      {explanation}
+                    </p>
+                  </div>
                 </div>
               )}
             </CardContent>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, Mail, Lock, User, LogIn, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, LogIn, UserPlus, Sparkles } from "lucide-react";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -18,7 +18,6 @@ const Auth = () => {
   const { toast } = useToast();
   const { user, signIn, signUp, signInWithGoogle } = useAuth();
 
-  // Redirect if already authenticated - moved after all hooks
   if (user) {
     return <Navigate to="/" replace />;
   }
@@ -40,20 +39,20 @@ const Auth = () => {
         await signUp(email, password, fullName);
         toast({
           title: "Account Created",
-          description: "Welcome to AI Tutor! You can now start learning."
+          description: "Welcome to AI Tutor!"
         });
       } else {
         await signIn(email, password);
         toast({
           title: "Welcome Back",
-          description: "Successfully signed in to AI Tutor."
+          description: "Successfully signed in."
         });
       }
     } catch (error: any) {
       console.error('Auth error:', error);
       toast({
         title: "Authentication Error",
-        description: error.message || "An error occurred during authentication.",
+        description: error.message || "An error occurred.",
         variant: "destructive"
       });
     } finally {
@@ -67,13 +66,13 @@ const Auth = () => {
       await signInWithGoogle();
       toast({
         title: "Welcome",
-        description: "Successfully signed in with Google."
+        description: "Signing in with Google..."
       });
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       toast({
         title: "Sign-in Error",
-        description: error.message || "Failed to sign in with Google.",
+        description: error.message || "Failed to sign in.",
         variant: "destructive"
       });
     } finally {
@@ -82,28 +81,44 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="shadow-2xl border-primary/20 hover:shadow-3xl transition-all duration-500 animate-fade-in hover-glow">
-          <CardHeader className="text-center pb-8">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {isSignUp ? "Join AI Tutor" : "Welcome Back"}
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/20 rounded-full" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl glass-card">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <span className="text-2xl font-bold gradient-text">AI Tutor</span>
+          </div>
+        </div>
+
+        <Card className="glass-card border-0 shadow-2xl">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-2xl font-bold">
+              {isSignUp ? "Create Account" : "Welcome Back"}
             </CardTitle>
             <CardDescription className="text-base mt-2">
               {isSignUp 
-                ? "Create your account to start your learning journey" 
-                : "Sign in to continue your personalized learning experience"
+                ? "Start your learning journey" 
+                : "Continue your learning"
               }
             </CardDescription>
           </CardHeader>
           
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5">
             {/* Google Sign In */}
             <Button
               onClick={handleGoogleSignIn}
               disabled={isLoading}
               variant="outline"
-              className="w-full h-12 text-base hover-scale hover-glow border-2"
+              className="w-full h-12 text-base hover-scale glass border-border/50"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -116,15 +131,15 @@ const Auth = () => {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-muted" />
+                <span className="w-full border-t border-border/50" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
+                <span className="bg-card px-3 text-muted-foreground">or</span>
               </div>
             </div>
 
             {/* Email Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {isSignUp && (
                 <div className="space-y-2">
                   <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
@@ -135,8 +150,8 @@ const Auth = () => {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Enter your full name"
-                      className="pl-10 h-12 transition-all duration-300 focus:ring-2 focus:ring-primary/20"
+                      placeholder="Your name"
+                      className="pl-10 h-12 input-focus border-border/50"
                       required={isSignUp}
                     />
                   </div>
@@ -152,8 +167,8 @@ const Auth = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="pl-10 h-12 transition-all duration-300 focus:ring-2 focus:ring-primary/20"
+                    placeholder="your@email.com"
+                    className="pl-10 h-12 input-focus border-border/50"
                     required
                   />
                 </div>
@@ -168,14 +183,14 @@ const Auth = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="pl-10 pr-10 h-12 transition-all duration-300 focus:ring-2 focus:ring-primary/20"
+                    placeholder="••••••••"
+                    className="pl-10 pr-10 h-12 input-focus border-border/50"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground smooth-transition"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -185,12 +200,12 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 text-base hover-scale hover-glow font-semibold"
+                className="w-full h-12 text-base font-semibold hover-scale btn-glow"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
-                    {isSignUp ? "Creating Account..." : "Signing In..."}
+                    {isSignUp ? "Creating..." : "Signing In..."}
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
@@ -201,25 +216,25 @@ const Auth = () => {
               </Button>
             </form>
 
-            {/* Toggle between sign in and sign up */}
-            <div className="text-center pt-4 border-t border-muted">
+            {/* Toggle */}
+            <div className="text-center pt-4 border-t border-border/30">
               <p className="text-sm text-muted-foreground">
                 {isSignUp ? "Already have an account?" : "Don't have an account?"}
               </p>
               <Button
                 variant="link"
                 onClick={() => setIsSignUp(!isSignUp)}
-                className="text-primary hover:text-primary/80 font-medium p-0 h-auto mt-2 hover-scale"
+                className="text-primary hover:text-primary/80 font-medium p-0 h-auto mt-1"
               >
-                {isSignUp ? "Sign in here" : "Create account here"}
+                {isSignUp ? "Sign in" : "Create account"}
               </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-muted-foreground animate-fade-in" style={{animationDelay: '0.3s'}}>
-          <p>Secure • Private • Powered by AI</p>
+        <div className="text-center mt-6 text-sm text-muted-foreground">
+          <p>Secure • Private • AI Powered</p>
         </div>
       </div>
     </div>

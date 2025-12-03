@@ -3,10 +3,11 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BookOpen, Send, ArrowLeft, Sparkles, User, BookOpenCheck } from "lucide-react";
+import { BookOpen, Send, Sparkles, User, BookOpenCheck, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { FloatingHeader } from "@/components/FloatingHeader";
 
 const BookRecommendations = () => {
   const [subject, setSubject] = useState("");
@@ -16,18 +17,16 @@ const BookRecommendations = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to auth if not logged in
   if (!loading && !user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          <p className="text-lg text-muted-foreground">Loading Book Recommendations...</p>
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center">
+        <div className="flex items-center gap-3 glass-card px-6 py-4 rounded-2xl">
+          <div className="animate-spin w-6 h-6 border-3 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -36,9 +35,8 @@ const BookRecommendations = () => {
   const getBookRecommendations = async () => {
     if (!subject.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please enter a subject to get book recommendations.",
-        variant: "destructive"
+        title: "Missing Subject",
+        description: "Please enter a subject."
       });
       return;
     }
@@ -46,35 +44,33 @@ const BookRecommendations = () => {
     setIsLoading(true);
     
     try {
-      // Generate book recommendations using Gemini
       const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-tutor-response', {
         body: {
           subject: subject,
-          question: `Please recommend 5-10 essential books or reference materials for studying ${subject}. Include a brief description of why each book is valuable for learners. Format your response with clear book titles, authors, and explanations.`
+          question: `Please recommend 5-10 essential books for studying ${subject}. Include brief descriptions of why each is valuable.`
         }
       });
 
       if (aiError) {
         console.error('AI generation error:', aiError);
-        throw new Error('Failed to generate book recommendations');
+        throw new Error('Failed to generate recommendations');
       }
 
       if (!aiData?.response) {
-        throw new Error('Invalid AI response received');
+        throw new Error('Invalid response');
       }
 
       setRecommendations(aiData.response);
       
       toast({
-        title: "Recommendations Generated",
-        description: "Here are the best books for your subject!"
+        title: "Done!",
+        description: "Recommendations ready"
       });
     } catch (error) {
-      console.error('Error getting book recommendations:', error);
+      console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to get book recommendations. Please try again.",
-        variant: "destructive"
+        description: "Failed to get recommendations"
       });
     } finally {
       setIsLoading(false);
@@ -82,48 +78,50 @@ const BookRecommendations = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      <FloatingHeader />
+      
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-40 left-20 w-64 h-64 bg-primary/10 rounded-full" />
+        <div className="absolute bottom-40 right-20 w-48 h-48 bg-accent/10 rounded-full" />
+      </div>
+
+      <div className="container mx-auto px-4 pt-24 pb-8 relative z-10">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Tutor
-          </Button>
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Book Recommendations
-            </h1>
-            <Sparkles className="w-8 h-8 text-secondary" />
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            <BookOpenCheck className="w-4 h-4" />
+            Book Recommendations
           </div>
+          <h1 className="text-3xl font-bold mb-2">
+            Find <span className="gradient-text">Perfect Books</span>
+          </h1>
+          <p className="text-muted-foreground">
+            Get AI-curated book recommendations for any subject
+          </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
           {/* Input Section */}
-          <Card className="border-primary/20 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpenCheck className="w-5 h-5" />
-                Get Book Recommendations
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BookOpenCheck className="w-5 h-5 text-primary" />
+                Get Recommendations
               </CardTitle>
               <CardDescription>
-                Enter any subject and get curated book recommendations from our AI
+                Enter any subject for curated book suggestions
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Subject or Topic</label>
+                <label className="text-sm font-medium mb-2 block">Subject</label>
                 <Input
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Enter any subject (e.g., Machine Learning, Ancient History, Calculus...)"
-                  className="w-full"
+                  placeholder="e.g., Machine Learning, History..."
+                  className="h-12 input-focus rounded-xl border-border/50"
                   onKeyPress={(e) => e.key === 'Enter' && getBookRecommendations()}
                 />
               </div>
@@ -131,43 +129,45 @@ const BookRecommendations = () => {
               <Button 
                 onClick={getBookRecommendations}
                 disabled={isLoading}
-                className="w-full"
+                className="w-full h-12 hover-scale btn-glow rounded-xl text-base font-semibold"
                 size="lg"
               >
                 <Send className="w-4 h-4 mr-2" />
-                {isLoading ? "Getting Recommendations..." : "Get Book Recommendations"}
+                {isLoading ? "Getting Books..." : "Get Recommendations"}
               </Button>
             </CardContent>
           </Card>
 
           {/* Recommendations Section */}
-          <Card className="border-secondary/20 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5" />
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BookOpen className="w-5 h-5 text-accent" />
                 Recommended Books
               </CardTitle>
               <CardDescription>
-                AI-curated books and reference materials for your subject
+                AI-curated reading list
               </CardDescription>
             </CardHeader>
             <CardContent>
               {!recommendations ? (
-                <div className="text-center py-8">
-                  <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-8 h-8 text-muted-foreground" />
+                  </div>
                   <p className="text-muted-foreground">
-                    Enter a subject above to get personalized book recommendations!
+                    Enter a subject to get recommendations
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4 max-h-[500px] overflow-y-auto">
-                  <div className="bg-secondary/10 rounded-lg p-4">
-                    <div className="text-xs text-muted-foreground mb-2 font-medium flex items-center gap-1">
+                <div className="max-h-[400px] overflow-y-auto scrollbar-modern">
+                  <div className="bg-muted/30 rounded-xl p-4 border border-border/30">
+                    <div className="text-xs text-muted-foreground mb-3 flex items-center gap-1 font-medium">
                       <Sparkles className="w-3 h-3" />
-                      Recommendations for: {subject}
+                      Books for: {subject}
                     </div>
-                    <div className="prose prose-sm max-w-none">
-                      <pre className="whitespace-pre-wrap font-sans text-foreground">
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <pre className="whitespace-pre-wrap font-sans text-foreground text-sm leading-relaxed">
                         {recommendations}
                       </pre>
                     </div>
@@ -178,36 +178,42 @@ const BookRecommendations = () => {
           </Card>
         </div>
 
-        {/* Features Section */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-center mb-8">Why Our Book Recommendations?</h2>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <Card className="text-center border-primary/20">
+        {/* Features */}
+        <div className="mt-12">
+          <h2 className="text-xl font-bold text-center mb-6">Why Our Recommendations?</h2>
+          <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <Card className="glass-card border-0 text-center">
               <CardContent className="pt-6">
-                <BookOpen className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Curated Selection</h3>
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="font-medium mb-1">Curated</h3>
                 <p className="text-sm text-muted-foreground">
-                  AI-powered recommendations based on academic excellence and user reviews
+                  AI-powered selection
                 </p>
               </CardContent>
             </Card>
             
-            <Card className="text-center border-secondary/20">
+            <Card className="glass-card border-0 text-center">
               <CardContent className="pt-6">
-                <User className="w-12 h-12 text-secondary mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">For All Levels</h3>
+                <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                  <User className="w-6 h-6 text-accent" />
+                </div>
+                <h3 className="font-medium mb-1">All Levels</h3>
                 <p className="text-sm text-muted-foreground">
-                  From beginner-friendly texts to advanced academic resources
+                  Beginner to advanced
                 </p>
               </CardContent>
             </Card>
             
-            <Card className="text-center border-accent/20">
+            <Card className="glass-card border-0 text-center">
               <CardContent className="pt-6">
-                <Sparkles className="w-12 h-12 text-accent mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Updated Content</h3>
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="font-medium mb-1">Updated</h3>
                 <p className="text-sm text-muted-foreground">
-                  Recommendations include both classic texts and latest publications
+                  Classic & new titles
                 </p>
               </CardContent>
             </Card>

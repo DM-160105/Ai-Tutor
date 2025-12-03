@@ -6,261 +6,179 @@ import {
   Clock, 
   Target, 
   TrendingUp, 
-  ArrowLeft,
   BookOpen,
   Brain,
   Award,
   Users,
   FileText,
-  Lightbulb
+  Lightbulb,
+  Camera,
+  Sparkles
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { FloatingHeader } from "@/components/FloatingHeader";
 
 const StudentTools = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to auth if not logged in
   if (!loading && !user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          <p className="text-lg text-muted-foreground">Loading Student Tools...</p>
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center">
+        <div className="flex items-center gap-3 glass-card px-6 py-4 rounded-2xl">
+          <div className="animate-spin w-6 h-6 border-3 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
   }
 
   const tools = [
-    {
-      icon: Calculator,
-      title: "Math Solver",
-      description: "Step-by-step solutions for math problems and equations",
-      color: "secondary",
-      comingSoon: true
-    },
-    {
-      icon: Clock,
-      title: "Practice Tests",
-      description: "Generate custom quizzes and practice exams for any subject",
-      color: "primary",
-      comingSoon: true
-    },
-    {
-      icon: Target,
-      title: "Learning Goals",
-      description: "Set and track your learning objectives and milestones",
-      color: "secondary",
-      comingSoon: true
-    },
-    {
-      icon: TrendingUp,
-      title: "Progress Tracker",
-      description: "Monitor your learning progress and identify areas for improvement",
-      color: "accent",
-      comingSoon: true
-    },
-    {
-      icon: FileText,
-      title: "Note Organizer",
-      description: "Organize and manage your study notes with AI assistance",
-      color: "primary",
-      comingSoon: true
-    },
-    {
-      icon: Lightbulb,
-      title: "Study Planner",
-      description: "Create personalized study schedules and reminders",
-      color: "secondary",
-      comingSoon: true
-    },
-    {
-      icon: Users,
-      title: "Study Groups",
-      description: "Connect with other students and form study groups",
-      color: "accent",
-      comingSoon: true
-    },
-    {
-      icon: Award,
-      title: "Achievement System",
-      description: "Earn badges and track your learning milestones",
-      color: "primary",
-      comingSoon: true
-    }
+    { icon: Calculator, title: "Math Solver", description: "Step-by-step solutions", comingSoon: true },
+    { icon: Clock, title: "Practice Tests", description: "Custom quizzes", comingSoon: true },
+    { icon: Target, title: "Learning Goals", description: "Track objectives", comingSoon: true },
+    { icon: TrendingUp, title: "Progress", description: "Monitor learning", comingSoon: true },
+    { icon: FileText, title: "Notes", description: "AI-assisted notes", comingSoon: true },
+    { icon: Lightbulb, title: "Study Planner", description: "Smart schedules", comingSoon: true },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      <FloatingHeader />
+      
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-32 left-10 w-56 h-56 bg-accent/10 rounded-full" />
+        <div className="absolute bottom-32 right-10 w-64 h-64 bg-primary/10 rounded-full" />
+      </div>
+
+      <div className="container mx-auto px-4 pt-24 pb-8 relative z-10">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Tutor
-          </Button>
-          <div className="flex items-center gap-2">
-            <Brain className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Student Tools & Resources
-            </h1>
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
+            <Sparkles className="w-4 h-4" />
+            Student Tools
           </div>
+          <h1 className="text-3xl font-bold mb-2">
+            Learning <span className="gradient-text">Resources</span>
+          </h1>
+          <p className="text-muted-foreground">
+            Tools to enhance your learning experience
+          </p>
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-lg text-muted-foreground mb-4">
-              Comprehensive tools to enhance your learning experience
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/">
-                <Button variant="outline">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  AI Tutor Chat
-                </Button>
-              </Link>
-              <Link to="/visual-learning">
-                <Button variant="outline">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Visual Learning
-                </Button>
-              </Link>
-              <Link to="/book-recommendations">
-                <Button variant="outline">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Book Recommendations
-                </Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button variant="outline">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Tools Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {tools.map((tool, index) => (
-              <Card 
-                key={index} 
-                className={`text-center border-${tool.color}/20 hover:border-${tool.color}/40 transition-colors cursor-pointer h-full relative`}
-              >
-                <CardContent className="pt-6">
-                  <tool.icon className={`w-12 h-12 text-${tool.color} mx-auto mb-4`} />
-                  <h3 className="font-semibold mb-2">{tool.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {tool.description}
-                  </p>
-                  {tool.comingSoon && (
-                    <div className="bg-accent/10 text-accent text-xs px-2 py-1 rounded-full">
-                      Coming Soon
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Currently Available Tools */}
-          <Card className="border-primary/20 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="w-5 h-5" />
-                Currently Available Tools
+        <div className="max-w-5xl mx-auto">
+          {/* Available Now */}
+          <Card className="glass-card border-0 mb-8">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Award className="w-5 h-5 text-primary" />
+                Available Now
               </CardTitle>
               <CardDescription>
-                These tools are ready to use right now
+                Ready to use
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-3 gap-4">
                 <Link to="/" className="group">
-                  <Card className="text-center border-primary/20 hover:border-primary/40 transition-colors cursor-pointer h-full group-hover:shadow-md">
-                    <CardContent className="pt-6">
-                      <Brain className="w-12 h-12 text-primary mx-auto mb-4" />
-                      <h3 className="font-semibold mb-2">AI Tutor Chat</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Ask questions and get instant AI-powered answers
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="p-4 bg-muted/30 rounded-xl border border-border/20 hover:border-primary/30 smooth-transition hover-scale text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                      <Brain className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-medium text-sm mb-1">AI Tutor</h3>
+                    <p className="text-xs text-muted-foreground">Ask anything</p>
+                  </div>
                 </Link>
 
                 <Link to="/visual-learning" className="group">
-                  <Card className="text-center border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer h-full group-hover:shadow-md">
-                    <CardContent className="pt-6">
-                      <Brain className="w-12 h-12 text-secondary mx-auto mb-4" />
-                      <h3 className="font-semibold mb-2">Visual Learning</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Generate images and visual explanations for topics
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="p-4 bg-muted/30 rounded-xl border border-border/20 hover:border-accent/30 smooth-transition hover-scale text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-3">
+                      <Camera className="w-6 h-6 text-accent" />
+                    </div>
+                    <h3 className="font-medium text-sm mb-1">Visual Learning</h3>
+                    <p className="text-xs text-muted-foreground">Generate images</p>
+                  </div>
                 </Link>
 
                 <Link to="/book-recommendations" className="group">
-                  <Card className="text-center border-accent/20 hover:border-accent/40 transition-colors cursor-pointer h-full group-hover:shadow-md">
-                    <CardContent className="pt-6">
-                      <BookOpen className="w-12 h-12 text-accent mx-auto mb-4" />
-                      <h3 className="font-semibold mb-2">Book Recommendations</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Get AI-curated book suggestions for any subject
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="p-4 bg-muted/30 rounded-xl border border-border/20 hover:border-primary/30 smooth-transition hover-scale text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                      <BookOpen className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-medium text-sm mb-1">Books</h3>
+                    <p className="text-xs text-muted-foreground">AI recommendations</p>
+                  </div>
                 </Link>
               </div>
             </CardContent>
           </Card>
 
-          {/* Development Roadmap */}
-          <Card className="mt-8 border-accent/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Development Roadmap
+          {/* Coming Soon */}
+          <Card className="glass-card border-0 mb-8">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <TrendingUp className="w-5 h-5 text-accent" />
+                Coming Soon
               </CardTitle>
               <CardDescription>
-                Upcoming features and tools we're working on
+                In development
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {tools.map((tool, index) => (
+                  <div 
+                    key={index} 
+                    className="p-4 bg-muted/20 rounded-xl border border-border/10 text-center opacity-70"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-2">
+                      <tool.icon className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-medium text-sm mb-0.5">{tool.title}</h3>
+                    <p className="text-xs text-muted-foreground">{tool.description}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Roadmap */}
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Target className="w-5 h-5 text-primary" />
+                Roadmap
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/20">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <div>
-                    <h4 className="font-semibold">Phase 1: Core Learning Tools</h4>
-                    <p className="text-sm text-muted-foreground">AI Tutor, Visual Learning, Book Recommendations (Completed)</p>
+                    <h4 className="font-medium text-sm">Phase 1: Core Tools</h4>
+                    <p className="text-xs text-muted-foreground">AI Tutor, Visual Learning, Books ✓</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/20">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                   <div>
-                    <h4 className="font-semibold">Phase 2: Assessment & Progress</h4>
-                    <p className="text-sm text-muted-foreground">Practice Tests, Progress Tracker, Learning Goals (In Development)</p>
+                    <h4 className="font-medium text-sm">Phase 2: Assessment</h4>
+                    <p className="text-xs text-muted-foreground">Practice Tests, Progress Tracker</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/20">
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
                   <div>
-                    <h4 className="font-semibold">Phase 3: Organization & Social</h4>
-                    <p className="text-sm text-muted-foreground">Note Organizer, Study Planner, Study Groups (Planned)</p>
+                    <h4 className="font-medium text-sm">Phase 3: Social</h4>
+                    <p className="text-xs text-muted-foreground">Notes, Study Groups, Planner</p>
                   </div>
                 </div>
               </div>

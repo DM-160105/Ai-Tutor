@@ -199,10 +199,11 @@ if (!imageUrl) {
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     console.error('Handler error:', error);
     return new Response(JSON.stringify({ 
-      error: error.message || 'An unexpected error occurred' 
+      error: errorMessage 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

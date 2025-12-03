@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { History, Trash2, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { History, Trash2, Search, ChevronDown, ChevronUp, Brain } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,8 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import 'katex/dist/katex.min.css';
 
 interface Question {
@@ -76,8 +74,7 @@ export const QuestionHistory = () => {
       console.error('Error loading question history:', error);
       toast({
         title: "Error",
-        description: "Failed to load question history",
-        variant: "destructive"
+        description: "Failed to load history"
       });
     } finally {
       setIsLoading(false);
@@ -98,15 +95,14 @@ export const QuestionHistory = () => {
       setQuestions([]);
       setFilteredQuestions([]);
       toast({
-        title: "History Cleared",
-        description: "All question history has been cleared"
+        title: "Cleared",
+        description: "History has been cleared"
       });
     } catch (error) {
       console.error('Error clearing history:', error);
       toast({
         title: "Error",
-        description: "Failed to clear history",
-        variant: "destructive"
+        description: "Failed to clear history"
       });
     }
   };
@@ -123,7 +119,6 @@ export const QuestionHistory = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -132,11 +127,11 @@ export const QuestionHistory = () => {
   };
 
   return (
-    <Card className="border-primary/20 shadow-lg bg-card/95 backdrop-blur-sm hover:shadow-xl transition-all duration-300 animate-fade-in">
-      <CardHeader>
+    <Card className="glass-card border-0">
+      <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <History className="w-5 h-5" />
+            <History className="w-5 h-5 text-primary" />
             Question History
           </div>
           {questions.length > 0 && (
@@ -144,15 +139,15 @@ export const QuestionHistory = () => {
               variant="outline"
               size="sm"
               onClick={clearHistory}
-              className="text-destructive hover:text-destructive hover-scale"
+              className="text-destructive hover:text-destructive hover-scale rounded-xl border-border/50"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              Clear All
+              Clear
             </Button>
           )}
         </CardTitle>
         <CardDescription>
-          Your complete AI tutor conversation history with Markdown support
+          Your AI tutor conversation history
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -160,61 +155,70 @@ export const QuestionHistory = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
-              placeholder="Search questions, answers, or subjects..."
+              placeholder="Search history..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 hover-scale"
+              className="pl-10 h-11 input-focus rounded-xl border-border/50"
             />
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin w-6 h-6 border-3 border-primary border-t-transparent rounded-full"></div>
           </div>
         ) : filteredQuestions.length === 0 ? (
-          <div className="text-center py-8">
-            <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <div className="text-center py-12">
+            <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+              <History className="w-7 h-7 text-muted-foreground" />
+            </div>
             <p className="text-muted-foreground">
-              {searchTerm ? "No questions found matching your search." : "No questions yet. Start asking your AI tutor!"}
+              {searchTerm ? "No results found" : "No questions yet"}
             </p>
           </div>
         ) : (
-          <ScrollArea className="h-[600px] pr-4">
-            <div className="space-y-4">
+          <ScrollArea className="h-[500px] pr-2 scrollbar-modern">
+            <div className="space-y-3">
               {filteredQuestions.map((question) => {
                 const isExpanded = expandedQuestions.has(question.id);
                 return (
-                  <div key={question.id} className="space-y-3 p-4 border border-border/50 rounded-lg hover:border-primary/30 transition-all duration-300 hover-scale">
-                    <div className="flex items-start justify-between gap-4">
+                  <div 
+                    key={question.id} 
+                    className="p-4 bg-muted/30 border border-border/30 rounded-xl hover:border-primary/30 smooth-transition"
+                  >
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
+                          <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-lg">
                             {question.subject}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {formatDate(question.created_at)}
                           </span>
                         </div>
-                        <h4 className="font-medium text-foreground mb-2 line-clamp-2">
+                        <h4 className="font-medium text-sm line-clamp-2">
                           {question.question}
                         </h4>
                         
                         {isExpanded && (
-                          <div className="mt-4 p-4 bg-secondary/10 rounded-lg animate-fade-in">
+                          <div className="mt-4 p-4 bg-background/50 rounded-xl border border-border/20">
+                            <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1 font-medium">
+                              <Brain className="w-3 h-3" />
+                              AI Response
+                            </div>
                             <div className="prose prose-sm max-w-none dark:prose-invert">
                               <ReactMarkdown
                                 remarkPlugins={[remarkMath]}
                                 rehypePlugins={[rehypeKatex]}
-                              components={{
-                                code({ className, children, ...props }: any) {
-                                  return (
-                                    <code className={`${className} bg-muted px-1 py-0.5 rounded text-sm`} {...props}>
-                                      {children}
-                                    </code>
-                                  );
-                                }
-                              }}
+                                components={{
+                                  code({ className, children, ...props }: any) {
+                                    return (
+                                      <code className={`${className} bg-muted px-1 py-0.5 rounded text-sm`} {...props}>
+                                        {children}
+                                      </code>
+                                    );
+                                  }
+                                }}
                               >
                                 {question.answer}
                               </ReactMarkdown>
@@ -226,7 +230,7 @@ export const QuestionHistory = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleExpanded(question.id)}
-                        className="hover-scale"
+                        className="hover-scale rounded-lg shrink-0"
                       >
                         {isExpanded ? (
                           <ChevronUp className="w-4 h-4" />

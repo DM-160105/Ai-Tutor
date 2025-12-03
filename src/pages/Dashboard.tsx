@@ -10,17 +10,18 @@ import {
   MessageSquare, 
   Camera, 
   BookOpenCheck, 
-  LogOut,
   TrendingUp,
   Calendar,
   Brain,
   Target,
   Award,
-  Clock
+  Clock,
+  Sparkles
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { FloatingHeader } from "@/components/FloatingHeader";
 
 const Dashboard = () => {
   const [userStats, setUserStats] = useState({
@@ -37,27 +38,24 @@ const Dashboard = () => {
   }>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to auth if not logged in
   if (!loading && !user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          <p className="text-lg text-muted-foreground">Loading Dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center">
+        <div className="flex items-center gap-3 glass-card px-6 py-4 rounded-2xl">
+          <div className="animate-spin w-6 h-6 border-3 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // Load user statistics
   useEffect(() => {
     const loadUserStats = async () => {
       if (!user) return;
@@ -65,7 +63,6 @@ const Dashboard = () => {
       try {
         setIsLoading(true);
         
-        // Get user's queries
         const { data: queries, error } = await supabase
           .from('queries')
           .select('*')
@@ -75,12 +72,10 @@ const Dashboard = () => {
         if (error) throw error;
 
         if (queries) {
-          // Calculate stats
           const totalQuestions = queries.length;
           const subjects = new Set(queries.map(q => q.subject?.toLowerCase()));
           const subjectsExplored = subjects.size;
           
-          // Find most common subject
           const subjectCounts: Record<string, number> = {};
           queries.forEach(q => {
             if (q.subject) {
@@ -100,7 +95,6 @@ const Dashboard = () => {
             favoriteSubject: favoriteSubject || "None"
           });
 
-          // Set recent activity (last 5 queries)
           setRecentActivity(queries.slice(0, 5).map(q => ({
             id: q.id,
             subject: q.subject || "Unknown",
@@ -112,8 +106,7 @@ const Dashboard = () => {
         console.error('Error loading user stats:', error);
         toast({
           title: "Error",
-          description: "Failed to load dashboard data.",
-          variant: "destructive"
+          description: "Failed to load data"
         });
       } finally {
         setIsLoading(false);
@@ -122,23 +115,6 @@ const Dashboard = () => {
 
     loadUserStats();
   }, [user, toast]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/auth');
-      toast({
-        title: "Signed Out",
-        description: "You have been signed out successfully."
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -161,179 +137,178 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          <p className="text-lg text-muted-foreground">Loading Dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center">
+        <div className="flex items-center gap-3 glass-card px-6 py-4 rounded-2xl">
+          <div className="animate-spin w-6 h-6 border-3 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      <FloatingHeader />
+      
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-32 right-20 w-64 h-64 bg-primary/10 rounded-full" />
+        <div className="absolute bottom-32 left-20 w-48 h-48 bg-accent/10 rounded-full" />
+      </div>
+
+      <div className="container mx-auto px-4 pt-24 pb-8 relative z-10">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Avatar className="w-12 h-12">
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Avatar className="w-14 h-14 border-2 border-primary/20">
               <AvatarImage src={user?.user_metadata?.avatar_url} />
-              <AvatarFallback className="bg-primary text-primary-foreground">
+              <AvatarFallback className="bg-primary text-primary-foreground text-lg">
                 {getUserInitials()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-3xl font-bold">
-                {getGreeting()}, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student'}!
+              <h1 className="text-2xl md:text-3xl font-bold">
+                {getGreeting()}, <span className="gradient-text">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student'}</span>!
               </h1>
-              <p className="text-muted-foreground">Welcome to your learning dashboard</p>
+              <p className="text-muted-foreground">Welcome to your dashboard</p>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/')}>
-              <Brain className="w-4 h-4 mr-2" />
-              AI Tutor
-            </Button>
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-primary/20">
-            <CardContent className="pt-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="glass-card border-0">
+            <CardContent className="pt-5 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <MessageSquare className="w-6 h-6 text-primary" />
+                <div className="p-2.5 bg-primary/10 rounded-xl">
+                  <MessageSquare className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{userStats.totalQuestions}</p>
-                  <p className="text-sm text-muted-foreground">Questions Asked</p>
+                  <p className="text-xs text-muted-foreground">Questions</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-secondary/20">
-            <CardContent className="pt-6">
+          <Card className="glass-card border-0">
+            <CardContent className="pt-5 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-secondary/10 rounded-lg">
-                  <BookOpen className="w-6 h-6 text-secondary" />
+                <div className="p-2.5 bg-accent/10 rounded-xl">
+                  <BookOpen className="w-5 h-5 text-accent" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{userStats.subjectsExplored}</p>
-                  <p className="text-sm text-muted-foreground">Subjects Explored</p>
+                  <p className="text-xs text-muted-foreground">Subjects</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-accent/20">
-            <CardContent className="pt-6">
+          <Card className="glass-card border-0">
+            <CardContent className="pt-5 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-accent/10 rounded-lg">
-                  <Target className="w-6 h-6 text-accent" />
+                <div className="p-2.5 bg-primary/10 rounded-xl">
+                  <Target className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold truncate">{userStats.favoriteSubject}</p>
-                  <p className="text-sm text-muted-foreground">Favorite Subject</p>
+                  <p className="text-sm font-semibold truncate max-w-[80px]">{userStats.favoriteSubject}</p>
+                  <p className="text-xs text-muted-foreground">Favorite</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-primary/20">
-            <CardContent className="pt-6">
+          <Card className="glass-card border-0">
+            <CardContent className="pt-5 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Clock className="w-6 h-6 text-primary" />
+                <div className="p-2.5 bg-accent/10 rounded-xl">
+                  <Clock className="w-5 h-5 text-accent" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold">
                     {userStats.lastActivity ? formatDate(userStats.lastActivity) : 'Never'}
                   </p>
-                  <p className="text-sm text-muted-foreground">Last Activity</p>
+                  <p className="text-xs text-muted-foreground">Last Active</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* Quick Actions */}
-          <Card className="border-primary/20 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5" />
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Target className="w-5 h-5 text-primary" />
                 Quick Actions
               </CardTitle>
               <CardDescription>
-                Jump into your learning activities
+                Jump into learning
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2">
               <Button 
-                variant="outline" 
-                className="w-full justify-start" 
+                variant="ghost" 
+                className="w-full justify-start h-12 hover-scale rounded-xl bg-muted/30 hover:bg-muted/50" 
                 onClick={() => navigate('/')}
               >
-                <Brain className="w-4 h-4 mr-3" />
+                <Brain className="w-5 h-5 mr-3 text-primary" />
                 Ask AI Tutor
               </Button>
               <Button 
-                variant="outline" 
-                className="w-full justify-start" 
+                variant="ghost" 
+                className="w-full justify-start h-12 hover-scale rounded-xl bg-muted/30 hover:bg-muted/50" 
                 onClick={() => navigate('/visual-learning')}
               >
-                <Camera className="w-4 h-4 mr-3" />
+                <Camera className="w-5 h-5 mr-3 text-accent" />
                 Visual Learning
               </Button>
               <Button 
-                variant="outline" 
-                className="w-full justify-start" 
+                variant="ghost" 
+                className="w-full justify-start h-12 hover-scale rounded-xl bg-muted/30 hover:bg-muted/50" 
                 onClick={() => navigate('/book-recommendations')}
               >
-                <BookOpenCheck className="w-4 h-4 mr-3" />
+                <BookOpenCheck className="w-5 h-5 mr-3 text-primary" />
                 Book Recommendations
               </Button>
               <Button 
-                variant="outline" 
-                className="w-full justify-start" 
+                variant="ghost" 
+                className="w-full justify-start h-12 hover-scale rounded-xl bg-muted/30 hover:bg-muted/50" 
                 onClick={() => navigate('/student-tools')}
               >
-                <TrendingUp className="w-4 h-4 mr-3" />
+                <TrendingUp className="w-5 h-5 mr-3 text-accent" />
                 Student Tools
               </Button>
             </CardContent>
           </Card>
 
           {/* Recent Activity */}
-          <Card className="border-secondary/20 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calendar className="w-5 h-5 text-accent" />
                 Recent Activity
               </CardTitle>
               <CardDescription>
-                Your latest questions and topics
+                Your latest questions
               </CardDescription>
             </CardHeader>
             <CardContent>
               {recentActivity.length === 0 ? (
-                <div className="text-center py-6">
-                  <MessageSquare className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">No recent activity</p>
-                  <p className="text-sm text-muted-foreground">Start asking questions to see your activity here!</p>
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
+                    <MessageSquare className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">No activity yet</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 max-h-[280px] overflow-y-auto scrollbar-modern">
                   {recentActivity.map((activity) => (
-                    <div key={activity.id} className="border rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant="outline" className="text-xs">
+                    <div key={activity.id} className="p-3 bg-muted/30 rounded-xl border border-border/20">
+                      <div className="flex items-center justify-between mb-1">
+                        <Badge variant="secondary" className="text-xs rounded-lg">
                           {activity.subject}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
@@ -349,43 +324,39 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Achievement Section */}
-        <Card className="mt-8 border-accent/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5" />
-              Learning Achievements
+        {/* Achievements */}
+        <Card className="mt-6 glass-card border-0">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Award className="w-5 h-5 text-primary" />
+              Achievements
             </CardTitle>
             <CardDescription>
-              Track your learning milestones
+              Your learning milestones
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="text-center p-4 border rounded-lg">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-muted/30 rounded-xl border border-border/20">
                 <div className="text-2xl mb-2">
                   {userStats.totalQuestions >= 50 ? '🏆' : userStats.totalQuestions >= 20 ? '🥈' : userStats.totalQuestions >= 10 ? '🥉' : '🌱'}
                 </div>
-                <h3 className="font-semibold">Question Master</h3>
-                <p className="text-sm text-muted-foreground">
-                  {userStats.totalQuestions}/50 questions asked
-                </p>
+                <h3 className="font-medium text-sm">Questions</h3>
+                <p className="text-xs text-muted-foreground">{userStats.totalQuestions}/50</p>
               </div>
               
-              <div className="text-center p-4 border rounded-lg">
+              <div className="text-center p-4 bg-muted/30 rounded-xl border border-border/20">
                 <div className="text-2xl mb-2">
                   {userStats.subjectsExplored >= 10 ? '🌟' : userStats.subjectsExplored >= 5 ? '⭐' : '🌱'}
                 </div>
-                <h3 className="font-semibold">Subject Explorer</h3>
-                <p className="text-sm text-muted-foreground">
-                  {userStats.subjectsExplored}/10 subjects explored
-                </p>
+                <h3 className="font-medium text-sm">Explorer</h3>
+                <p className="text-xs text-muted-foreground">{userStats.subjectsExplored}/10</p>
               </div>
               
-              <div className="text-center p-4 border rounded-lg">
+              <div className="text-center p-4 bg-muted/30 rounded-xl border border-border/20">
                 <div className="text-2xl mb-2">🔥</div>
-                <h3 className="font-semibold">Learning Streak</h3>
-                <p className="text-sm text-muted-foreground">Keep up the momentum!</p>
+                <h3 className="font-medium text-sm">Streak</h3>
+                <p className="text-xs text-muted-foreground">Keep learning!</p>
               </div>
             </div>
           </CardContent>
