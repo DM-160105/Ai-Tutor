@@ -1,3 +1,4 @@
+import ReactMarkdown from "react-markdown";
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -168,7 +169,9 @@ const BookRecommendations = () => {
                     </div>
                     <div className="prose prose-sm max-w-none dark:prose-invert">
                       <pre className="whitespace-pre-wrap font-sans text-foreground text-sm leading-relaxed">
+                        <ReactMarkdown>
                         {recommendations}
+                        </ReactMarkdown>
                       </pre>
                     </div>
                   </div>
