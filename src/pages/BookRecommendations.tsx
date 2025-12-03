@@ -169,9 +169,7 @@ const BookRecommendations = () => {
                     </div>
                     <div className="prose prose-sm max-w-none dark:prose-invert">
                       <ReactMarkdown>
-                      <pre className="whitespace-pre-wrap font-sans text-foreground text-sm leading-relaxed">
                         {recommendations}
-                      </pre>
                       </ReactMarkdown>
                     </div>
                   </div>
