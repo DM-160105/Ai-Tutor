@@ -1,4 +1,6 @@
 import ReactMarkdown from "react-markdown";
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { FloatingHeader } from "@/components/FloatingHeader";
+import 'katex/dist/katex.min.css';
 
 const VisualLearning = () => {
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -280,7 +283,9 @@ const VisualLearning = () => {
                   <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
                     <h3 className="font-medium text-sm mb-3">Explanation</h3>
                    <div className="prose prose-sm max-w-none text-foreground">
-  <ReactMarkdown>
+  <ReactMarkdown
+    remarkPlugins={[remarkMath]}
+                            rehypePlugins={[rehypeKatex]}>
     {explanation}
   </ReactMarkdown>
 </div>
