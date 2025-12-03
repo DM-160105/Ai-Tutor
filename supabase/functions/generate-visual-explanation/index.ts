@@ -30,6 +30,66 @@ serve(async (req) => {
 
     let imageUrl = '';
 
+    // 0. Try Google Gemini Nano Banana (gemini-2.5-flash-image)
+    if (!imageUrl && geminiApiKey) {
+      try {
+        console.log('🍌 Trying Gemini Nano Banana (gemini-2.5-flash-image)...');
+        console.log('📤 Prompt:', imagePrompt);
+
+        const geminiResponse = await fetch(
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': geminiApiKey, // header-based auth 
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { text: imagePrompt }
+                  ],
+                },
+              ],
+            }),
+          },
+        );
+
+        console.log('📥 Gemini Response Status:', geminiResponse.status);
+        const geminiRaw = await geminiResponse.text();
+        console.log('🧾 Gemini Response Body (truncated):', geminiRaw.slice(0, 2000));
+
+        if (geminiResponse.ok) {
+          const geminiData = JSON.parse(geminiRaw);
+
+          // REST returns candidates[0].content.parts with inline image data in base64 
+          const candidates = geminiData.candidates ?? [];
+          outer: for (const cand of candidates) {
+            const parts = cand.content?.parts ?? [];
+            for (const part of parts) {
+              const inline = part.inlineData || part.inline_data;
+              if (inline?.data) {
+                const mime =
+                  inline.mimeType || inline.mime_type || 'image/png';
+                imageUrl = `data:${mime};base64,${inline.data}`;
+                console.log('✅ Gemini Nano Banana returned image.');
+                break outer;
+              }
+            }
+          }
+
+          if (!imageUrl) {
+            console.error('⚠️ Gemini response had no inline image data.');
+          }
+        } else {
+          console.error('❌ Gemini error response:', geminiRaw);
+        }
+      } catch (err) {
+        console.error('❌ Gemini Nano Banana error:', err);
+      }
+    }
+    
     // 1. Try Stability AI
 if (!imageUrl && stabilityApiKey) {
   try {
