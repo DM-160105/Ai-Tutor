@@ -125,36 +125,42 @@ if (!imageUrl && stabilityApiKey) {
   }
 }
 
-// 2. Fallback to Hugging Face if Stability AI failed
+// 2. Fallback to Hugging Face FLUX.1-dev via router
 if (!imageUrl && hfApiKey) {
   try {
-    console.log('🔁 Fallback: Trying Hugging Face FLUX.1-dev...');
+    console.log('🔁 Fallback: Trying Hugging Face FLUX.1-dev via router...');
     console.log('📤 Prompt:', imagePrompt);
 
-    const fluxResponse = await fetch("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${hfApiKey}`,
-        "Content-Type": "application/json"
+    const fluxResponse = await fetch(
+      "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-dev",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${hfApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: imagePrompt,
+          // optional parameters:
+          // parameters: { guidance_scale: 3.5, num_inference_steps: 28 }
+        }),
       },
-      body: JSON.stringify({
-        inputs: imagePrompt
-      })
-    });
+    );
 
     console.log('📥 FLUX.1-dev Response Status:', fluxResponse.status);
 
     if (fluxResponse.ok) {
       const buffer = await fluxResponse.arrayBuffer();
-      const base64Image = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(buffer)))}`;
+      const base64Image =
+        `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(buffer)))}`;
       imageUrl = base64Image;
-      console.log('✅ Hugging Face FLUX returned image.');
+      console.log('✅ Hugging Face FLUX.1-dev (router) returned image.');
     } else {
       const errText = await fluxResponse.text();
-      console.error('FLUX.1-dev Error Response:', errText);
+      console.error('FLUX.1-dev Router Error Response:', errText);
     }
   } catch (error) {
-    console.error('❌ Hugging Face FLUX generation error:', error);
+    console.error('❌ Hugging Face FLUX generation error (router):', error);
   }
 }
     
