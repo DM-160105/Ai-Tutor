@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BookOpen, Brain, Camera, User, Settings, LogOut, Menu, Home, Calculator, BookOpenCheck, Sparkles } from "lucide-react";
+import { BookOpen, Brain, Camera, User, Settings, LogOut, Menu, Home, Calculator, BookOpenCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ThemeSelector } from "./ThemeSelector";
-
+import Logo from "@/assets/logo.svg";
 export const FloatingHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut } = useAuth();
@@ -25,7 +25,7 @@ export const FloatingHeader = () => {
   }, []);
 
   const navigationItems = [
-    { name: "Home", href: "/", icon: Home },
+    { name: "Tutor", href: "/tutor", icon: Home },
     { name: "Visual", href: "/visual-learning", icon: Camera },
     { name: "Books", href: "/book-recommendations", icon: BookOpenCheck },
     { name: "Tools", href: "/student-tools", icon: Calculator },
@@ -62,8 +62,8 @@ export const FloatingHeader = () => {
             className="flex items-center gap-2 cursor-pointer hover-scale"
             onClick={() => handleNavigation('/')}
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            <div className="w-9 h-9 glass-card rounded-xl flex items-center justify-center p-1.5 shadow-lg">
+              <img src={Logo} alt="AI Tutor" className="w-full h-full object-contain dark:invert" />
             </div>
             <span className="font-bold text-xl gradient-text hidden sm:block">
               AI Tutor

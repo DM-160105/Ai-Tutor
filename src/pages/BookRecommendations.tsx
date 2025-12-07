@@ -3,12 +3,12 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BookOpen, Send, Sparkles, User, BookOpenCheck, Brain } from "lucide-react";
+import { BookOpen, Send, Sparkles, User, BookOpenCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { FloatingHeader } from "@/components/FloatingHeader";
-
+import ReactMarkdown from "react-markdown";
 const BookRecommendations = () => {
   const [subject, setSubject] = useState("");
   const [recommendations, setRecommendations] = useState<string>("");
@@ -166,10 +166,8 @@ const BookRecommendations = () => {
                       <Sparkles className="w-3 h-3" />
                       Books for: {subject}
                     </div>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <pre className="whitespace-pre-wrap font-sans text-foreground text-sm leading-relaxed">
-                        {recommendations}
-                      </pre>
+                    <div className="prose prose-sm max-w-none dark:prose-invert text-foreground">
+                      <ReactMarkdown>{recommendations}</ReactMarkdown>
                     </div>
                   </div>
                 </div>
