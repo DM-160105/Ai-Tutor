@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, Mail, Lock, User, LogIn, UserPlus, Sparkles } from "lucide-react";
-
+import { Eye, EyeOff, Mail, Lock, User, LogIn, UserPlus } from "lucide-react";
+import Logo from "@/assets/logo.svg";
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +19,7 @@ const Auth = () => {
   const { user, signIn, signUp, signInWithGoogle } = useAuth();
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/tutor" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,14 +90,14 @@ const Auth = () => {
 
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl glass-card">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-primary-foreground" />
+        <Link to="/" className="block text-center mb-8">
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl glass-card hover-scale cursor-pointer">
+            <div className="w-12 h-12 glass-card rounded-xl flex items-center justify-center p-2">
+              <img src={Logo} alt="AI Tutor" className="w-full h-full object-contain dark:invert" />
             </div>
             <span className="text-2xl font-bold gradient-text">AI Tutor</span>
           </div>
-        </div>
+        </Link>
 
         <Card className="glass-card border-0 shadow-2xl">
           <CardHeader className="text-center pb-6">
