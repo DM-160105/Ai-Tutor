@@ -15,6 +15,8 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const VisualLearning = lazy(() => import("./pages/VisualLearning"));
 const BookRecommendations = lazy(() => import("./pages/BookRecommendations"));
 const StudentTools = lazy(() => import("./pages/StudentTools"));
+const ToolsPage = lazy(() => import("./pages/ToolsPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -50,6 +52,8 @@ const App = () => (
                 <Route path="/visual-learning" element={<VisualLearning />} />
                 <Route path="/book-recommendations" element={<BookRecommendations />} />
                 <Route path="/student-tools" element={<StudentTools />} />
+                <Route path="/tools" element={<ToolsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
