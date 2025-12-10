@@ -25,8 +25,12 @@ const FileQuestionTool = () => {
     setLoading(true);
     try {
       const result = await mockAskFileQuestion(file.name, question);
-      setConversation(prev => [...prev, result]);
-      setQuestion('');
+      if (result.success) {
+        setConversation(prev => [...prev, result.data]);
+        setQuestion('');
+      } else if (!result.success) {
+        setError(result.error.message);
+      }
     } finally {
       setLoading(false);
     }

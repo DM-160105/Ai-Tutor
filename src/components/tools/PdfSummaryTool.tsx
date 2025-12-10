@@ -17,7 +17,9 @@ const PdfSummaryTool = () => {
     setLoading(true);
     try {
       const result = await mockGeneratePdfSummary(file.name, length);
-      setSummary(result.summary);
+      if (result.success) {
+        setSummary(result.data.summary);
+      }
     } finally {
       setLoading(false);
     }
