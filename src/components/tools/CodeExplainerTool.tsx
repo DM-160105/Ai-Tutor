@@ -25,11 +25,7 @@ const CodeExplainerTool = () => {
     setLoading(true);
     try {
       const analysis = await mockAnalyzeCode(code, language, mode);
-      if (analysis.success) {
-        setResult(analysis.data);
-      } else if (!analysis.success) {
-        setError(analysis.error.message);
-      }
+      setResult(analysis);
     } finally {
       setLoading(false);
     }
