@@ -47,7 +47,7 @@ const BookRecommendations = () => {
       const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-tutor-response', {
         body: {
           subject: subject,
-          question: `Please recommend 5-10 essential books for studying ${subject}. Include brief descriptions of why each is valuable.`
+          question: `List 5-10 recommended books for ${subject}. Format: Only bullet points with "Book Title" by Author Name. No descriptions or explanations, just the book names and authors.`
         }
       });
 
