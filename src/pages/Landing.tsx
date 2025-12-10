@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,34 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, BookOpen, Brain, Camera, Sparkles, Users, Zap, Move, MousePointer } from "lucide-react";
 import Logo from "@/assets/logo.svg";
+
+// Feature data defined first
+const features = [
+  {
+    icon: Brain,
+    title: "AI-Powered Tutoring",
+    description: "Get instant answers with our advanced AI tutor",
+    delay: 0.1
+  },
+  {
+    icon: Camera,
+    title: "Visual Learning",
+    description: "Generate visual explanations for complex topics",
+    delay: 0.2
+  },
+  {
+    icon: BookOpen,
+    title: "Book Recommendations",
+    description: "Discover the best books for any subject",
+    delay: 0.3
+  },
+  {
+    icon: Zap,
+    title: "Instant Responses",
+    description: "No waiting - get help exactly when you need it",
+    delay: 0.4
+  }
+];
 
 // Memoized feature card for performance
 const FeatureCard = memo(({ feature, index }: { feature: typeof features[0]; index: number }) => {
@@ -45,35 +73,6 @@ const FeatureCard = memo(({ feature, index }: { feature: typeof features[0]; ind
 });
 
 FeatureCard.displayName = "FeatureCard";
-
-import { memo } from "react";
-
-const features = [
-  {
-    icon: Brain,
-    title: "AI-Powered Tutoring",
-    description: "Get instant answers with our advanced AI tutor",
-    delay: 0.1
-  },
-  {
-    icon: Camera,
-    title: "Visual Learning",
-    description: "Generate visual explanations for complex topics",
-    delay: 0.2
-  },
-  {
-    icon: BookOpen,
-    title: "Book Recommendations",
-    description: "Discover the best books for any subject",
-    delay: 0.3
-  },
-  {
-    icon: Zap,
-    title: "Instant Responses",
-    description: "No waiting - get help exactly when you need it",
-    delay: 0.4
-  }
-];
 
 // Memoized orb component for performance
 const AnimatedOrb = memo(({ 
