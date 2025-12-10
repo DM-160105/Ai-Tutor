@@ -21,8 +21,12 @@ const VideoSummaryTool = () => {
 
     setLoading(true);
     try {
-      const summary = await mockSummarizeVideo(url, focus);
-      setResult(summary);
+      const result = await mockSummarizeVideo(url, focus);
+      if (result.success) {
+        setResult(result.data);
+      } else if (!result.success) {
+        setError(result.error.message);
+      }
     } finally {
       setLoading(false);
     }
