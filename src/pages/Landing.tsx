@@ -413,7 +413,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="relative z-10 border-t border-border/30 py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2024 AI Tutor. Secure • Private • AI Powered</p>
+          <p>© 2025 AI Tutor. Secure • Private • AI Powered</p>
         </div>
       </footer>
     </div>
