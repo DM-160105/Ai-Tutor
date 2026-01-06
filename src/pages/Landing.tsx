@@ -211,23 +211,7 @@ const Landing = () => {
         ))}
       </div>
 
-      {/* Drag Mode Toggle */}
-      <motion.div 
-        className="fixed top-4 right-4 z-50 liquid-glass px-4 py-2.5 rounded-2xl flex items-center gap-3"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.3, ease: "easeOut" }}
-      >
-        <Label htmlFor="drag-mode" className="text-sm flex items-center gap-2 cursor-pointer select-none">
-          {dragMode ? <Move className="w-4 h-4 text-primary" /> : <MousePointer className="w-4 h-4" />}
-          <span className="hidden sm:inline font-medium">{dragMode ? 'Drag Mode' : 'View Mode'}</span>
-        </Label>
-        <Switch 
-          id="drag-mode"
-          checked={dragMode}
-          onCheckedChange={setDragMode}
-        />
-      </motion.div>
+ 
 
       {/* Header */}
       <header className="relative z-10 container mx-auto px-4 py-6">
