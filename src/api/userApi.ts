@@ -1,4 +1,6 @@
-// Mock API for User/Profile
+// Real API for User/Profile using Supabase
+import { supabase } from "@/integrations/supabase/client";
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -33,119 +35,160 @@ export interface DownloadEntry {
   size: string;
 }
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const getInitials = (name: string): string => {
+  if (!name) return 'U';
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 export const getUserProfile = async (): Promise<UserProfile> => {
-  await delay(500);
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  // Try to get profile from profiles table
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  const name = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+  const email = profile?.email || user.email || '';
+
   return {
-    id: '1',
-    name: 'Devang Makwana',
-    email: 'devang.makwana@example.com',
-    tagline: 'Computer Engineering Student',
+    id: user.id,
+    name,
+    email,
+    tagline: 'Student',
     role: 'AI Tutor Member',
-    initials: 'DM'
+    initials: getInitials(name),
+    avatarUrl: profile?.avatar_url || user.user_metadata?.avatar_url
   };
 };
 
 export const updateUserProfile = async (
   updates: Partial<UserProfile>
 ): Promise<UserProfile> => {
-  await delay(800);
-  return {
-    id: '1',
-    name: updates.name || 'Devang Makwana',
-    email: 'devang.makwana@example.com',
-    tagline: updates.tagline || 'Computer Engineering Student',
-    role: 'AI Tutor Member',
-    initials: updates.name ? updates.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'DM'
-  };
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  // Update in profiles table
+  const { error } = await supabase
+    .from('profiles')
+    .upsert({
+      user_id: user.id,
+      full_name: updates.name,
+      email: user.email,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id'
+    });
+
+  if (error) {
+    console.error('Profile update error:', error);
+  }
+
+  // Return updated profile
+  return getUserProfile();
 };
 
 export const getUserStats = async (): Promise<UserStats> => {
-  await delay(600);
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  // Get queries count for this user
+  const { count: queriesCount } = await supabase
+    .from('queries')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+
+  // Get generated images count
+  const { count: imagesCount } = await supabase
+    .from('generated_images')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+
+  // Calculate stats based on real data
+  const totalQueries = queriesCount || 0;
+  const totalImages = imagesCount || 0;
+  
+  // Estimate study hours (assume ~2 minutes per query interaction)
+  const estimatedHours = Math.round((totalQueries * 2) / 60 * 10) / 10;
+
   return {
-    totalStudyHours: 24.5,
-    lessonsCompleted: 42,
-    quizzesAttempted: 18,
-    streakDays: 7
+    totalStudyHours: estimatedHours,
+    lessonsCompleted: totalImages, // Visual learning images generated
+    quizzesAttempted: totalQueries, // Questions asked
+    streakDays: totalQueries > 0 ? Math.min(Math.ceil(totalQueries / 3), 30) : 0 // Estimated streak
   };
 };
 
 export const getSavedNotes = async (): Promise<SavedNote[]> => {
-  await delay(700);
-  return [
-    {
-      id: '1',
-      title: 'Machine Learning Fundamentals',
-      source: 'PDF Summary',
-      createdAt: new Date('2024-12-01'),
-      content: 'Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience. Key concepts include supervised learning, unsupervised learning, and reinforcement learning. This summary covers the mathematical foundations and practical applications.'
-    },
-    {
-      id: '2',
-      title: 'Data Structures Overview',
-      source: 'File Question',
-      createdAt: new Date('2024-12-03'),
-      content: 'Arrays, linked lists, stacks, queues, trees, and graphs are fundamental data structures. Each has specific use cases and trade-offs in terms of time and space complexity. Understanding when to use each structure is key to efficient programming.'
-    },
-    {
-      id: '3',
-      title: 'React Hooks Explained',
-      source: 'Code Explanation',
-      createdAt: new Date('2024-12-05'),
-      content: 'React Hooks like useState, useEffect, and useCallback allow functional components to manage state and side effects. They provide a more direct API to React concepts without the complexity of class components.'
-    },
-    {
-      id: '4',
-      title: 'Database Normalization',
-      source: 'Video Summary',
-      createdAt: new Date('2024-12-06'),
-      content: 'Normalization is the process of organizing database tables to minimize redundancy. The main normal forms (1NF, 2NF, 3NF, BCNF) provide progressively stricter rules for table design.'
-    },
-    {
-      id: '5',
-      title: 'Algorithm Complexity',
-      source: 'PDF Summary',
-      createdAt: new Date('2024-12-07'),
-      content: 'Big O notation describes algorithm efficiency. Common complexities include O(1) constant, O(log n) logarithmic, O(n) linear, O(n log n) linearithmic, and O(n²) quadratic. Choosing efficient algorithms is crucial for scalable applications.'
-    }
-  ];
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  // Get recent queries as "notes"
+  const { data: queries } = await supabase
+    .from('queries')
+    .select('id, question, subject, ai_response, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (!queries || queries.length === 0) {
+    return [];
+  }
+
+  return queries.map(q => ({
+    id: q.id,
+    title: q.question?.slice(0, 50) + (q.question && q.question.length > 50 ? '...' : '') || 'Untitled',
+    source: q.subject || 'General',
+    createdAt: new Date(q.created_at || Date.now()),
+    content: q.ai_response?.slice(0, 200) + (q.ai_response && q.ai_response.length > 200 ? '...' : '') || 'No response saved'
+  }));
 };
 
 export const getDownloadHistory = async (): Promise<DownloadEntry[]> => {
-  await delay(600);
-  return [
-    {
-      id: '1',
-      fileName: 'ml-fundamentals-summary.txt',
-      type: 'Text',
-      fromTool: 'PDF Summary',
-      date: new Date('2024-12-01'),
-      size: '4.2 KB'
-    },
-    {
-      id: '2',
-      fileName: 'ds-questions-answers.txt',
-      type: 'Text',
-      fromTool: 'File Q&A',
-      date: new Date('2024-12-03'),
-      size: '2.8 KB'
-    },
-    {
-      id: '3',
-      fileName: 'react-hooks-analysis.txt',
-      type: 'Text',
-      fromTool: 'Code Explainer',
-      date: new Date('2024-12-05'),
-      size: '3.5 KB'
-    },
-    {
-      id: '4',
-      fileName: 'db-lecture-notes.txt',
-      type: 'Text',
-      fromTool: 'Video Summary',
-      date: new Date('2024-12-06'),
-      size: '5.1 KB'
-    }
-  ];
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  // Get generated images as download history
+  const { data: images } = await supabase
+    .from('generated_images')
+    .select('id, topic, subject, created_at, image_url')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (!images || images.length === 0) {
+    return [];
+  }
+
+  return images.map(img => ({
+    id: img.id,
+    fileName: `${img.topic.replace(/\s+/g, '-').toLowerCase()}-visual.png`,
+    type: 'Image',
+    fromTool: 'Visual Learning',
+    date: new Date(img.created_at),
+    size: '~500 KB'
+  }));
 };
