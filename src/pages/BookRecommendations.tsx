@@ -47,7 +47,18 @@ const BookRecommendations = () => {
       const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-tutor-response', {
         body: {
           subject: subject,
-          question: `List 5-10 recommended books for ${subject}. Format: Only bullet points with "Book Title" by Author Name. No descriptions or explanations, just the book names and authors.`
+          question: `Recommend 5-10 books for learning ${subject}.
+
+STRICT FORMAT RULES:
+- Return ONLY a bullet list
+- Each line: • "Book Title" by Author Name
+- NO descriptions, NO explanations, NO paragraphs
+- NO introductions or conclusions
+- Just the book list, nothing else
+
+Example format:
+• "Clean Code" by Robert C. Martin
+• "The Pragmatic Programmer" by David Thomas`
         }
       });
 
