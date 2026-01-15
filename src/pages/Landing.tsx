@@ -2,9 +2,7 @@ import { useState, useRef, useCallback, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { ArrowRight, BookOpen, Brain, Camera, Sparkles, Users, Zap, Move, MousePointer } from "lucide-react";
+import { ArrowRight, BookOpen, Brain, Camera, Sparkles, Users, Zap } from "lucide-react";
 import Logo from "@/assets/logo.svg";
 
 // Feature data defined first
