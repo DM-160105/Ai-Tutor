@@ -100,10 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl =
-      process.env.NODE_ENV === 'production'
-        ? 'https://ai-tutor-dm.lovable.app/'
-        : 'http://localhost:3000/';
+    const redirectUrl = `${window.location.origin}/`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

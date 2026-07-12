@@ -2,8 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { lazy, Suspense } from "react";
 
@@ -35,6 +35,21 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// Protected Route wrapper component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -46,14 +61,14 @@ const App = () => (
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Landing />} />
-                <Route path="/tutor" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/visual-learning" element={<VisualLearning />} />
-                <Route path="/book-recommendations" element={<BookRecommendations />} />
-                <Route path="/student-tools" element={<StudentTools />} />
-                <Route path="/tools" element={<ToolsPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/tutor" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/visual-learning" element={<ProtectedRoute><VisualLearning /></ProtectedRoute>} />
+                <Route path="/book-recommendations" element={<ProtectedRoute><BookRecommendations /></ProtectedRoute>} />
+                <Route path="/student-tools" element={<ProtectedRoute><StudentTools /></ProtectedRoute>} />
+                <Route path="/tools" element={<ProtectedRoute><ToolsPage /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
