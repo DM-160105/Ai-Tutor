@@ -68,75 +68,71 @@ An intelligent web-based learning assistant that creates personalized lessons ta
 | Technology | Description |
 |------------|-------------|
 | ![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white) | Frontend UI Framework |
+| ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) | Build Tool & Dev Server |
+| ![Bun](https://img.shields.io/badge/-Bun-black?logo=bun&logoColor=white) | Package Manager & Runtime |
 | ![Tailwind](https://img.shields.io/badge/-Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white) | Styling & Design System |
-| ![Node.js](https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white) | Backend API |
-| ![Express](https://img.shields.io/badge/-Express-black?logo=express&logoColor=white) | Server Framework |
-| ![OpenAI](https://img.shields.io/badge/-OpenAI-412991?logo=openai&logoColor=white) | AI & NLP Integration |
-| ![Supabase](https://img.shields.io/badge/-Supabase-3ECF8E?logo=supabase&logoColor=white) | User Data & Session Storage |
+| ![Supabase](https://img.shields.io/badge/-Supabase-3ECF8E?logo=supabase&logoColor=white) | Database, Auth & Edge Functions |
 | ![Vercel](https://img.shields.io/badge/-Vercel-000000?logo=vercel&logoColor=white) | Hosting & Deployment |
-
----
-
-## 📊 Languages & Usage
-
-| Language | Usage | Progress |
-|----------|-------|----------|
-| ![JavaScript](https://img.shields.io/badge/-JavaScript-F7DF1E?logo=javascript&logoColor=black) | Frontend Logic | ████████████████░░ 85% |
-| ![HTML](https://img.shields.io/badge/-HTML5-E34F26?logo=html5&logoColor=white) | Page Structure | ██████████░░░░░░ 60% |
-| ![CSS](https://img.shields.io/badge/-CSS3-1572B6?logo=css3&logoColor=white) | Styling via Tailwind | ██████████░░░░░░ 60% |
-| ![Node.js](https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white) | Backend Logic | ███████████░░░░░ 70% |
-| ![Markdown](https://img.shields.io/badge/-Markdown-000000?logo=markdown&logoColor=white) | Documentation | ████████░░░░░░░ 50% |
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these steps to run the project locally:
+This project is built and optimized exclusively for **Bun**. Do not use `npm` or `yarn`.
 
+### Prerequisites
+Make sure you have [Bun](https://bun.sh) installed:
 ```bash
-git clone https://github.com/yourusername/ai-tutor-dm.git
-cd ai-tutor-dm
-npm install
-
-Create a .env file and configure your environment variables:
-
-OPENAI_API_KEY=your-api-key
-DATABASE_URL=your-database-url
-
-Run the development server:
-
-npm run dev
-
-Visit http://localhost:3000 in your browser to start using the app.
-
+curl -fsSL https://bun.sh/install | bash
 ```
 
-## 🧪 How It Works
+### Installation & Run
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/DM-160105/Ai-Tutor.git
+   cd Ai-Tutor
+   ```
 
-1. User submits their profile including age, subject, and goals
+2. Install dependencies using Bun:
+   ```bash
+   bun install
+   ```
 
+3. Create your local environment file:
+   Copy the example file to `.env` (or `.env.local` which is ignored by git):
+   ```bash
+   cp .env.example .env
+   ```
+   Open the `.env` file and enter your Supabase Project credentials.
 
-2. AI engine generates a lesson tailored to those parameters
-
-
-3. User progresses through the content with real-time Q&A
-
-
-4. AI adapts lesson difficulty and flow based on performance
-
-
-5. A summary and quiz wrap up each session to reinforce learning
+4. Start the local development server:
+   ```bash
+   bun run dev
+   ```
+   The application will be running at `http://localhost:8080`.
 
 ---
 
-## 📆 Roadmap
+## ⚡ Deployment & Hosting
 
-[x] Personalized lesson generator
+### Vercel Routing Configuration
+Since this is a Single Page Application (SPA) utilizing `react-router-dom`, direct URL navigation or refreshing pages on Vercel would normally result in a **404: NOT_FOUND** error. 
 
-[x] Conversational AI chat
+We resolve this automatically with the [vercel.json](file:///Users/devang-makwana/Documents/Ai-Tutor/vercel.json) rewrite rule in the root of the project:
+```json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+This rewrites all server-side requests to `index.html`, allowing React Router to handle the URL correctly.
 
-[ ] Progress tracker with visual dashboard
+### Vercel Environment Variables
+Make sure to add the following Environment Variables in your Vercel Dashboard (**Settings -> Environment Variables**):
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-[ ] Gamified experience: XP, streaks, rewards
-
-[ ] Mobile-first redesign

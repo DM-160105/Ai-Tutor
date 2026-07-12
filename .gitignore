@@ -26,6 +26,8 @@ dist-ssr
 # Environment variables
 .env
 .env.*
+!.env.example
+
 
 # Supabase Local Development
 .supabase/
