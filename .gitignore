@@ -27,3 +27,15 @@ dist-ssr
 .env
 .env.*
 
+# Supabase Local Development
+.supabase/
+supabase/.temp/
+
+# Backup and Archive Files
+*.backup
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+
+
