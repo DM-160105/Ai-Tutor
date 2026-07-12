@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Loader2, Download, FileText } from "lucide-react";
-import { mockGeneratePdfSummary } from "@/api/toolsApi";
+import { generatePdfSummary } from "@/api/toolsApi";
 
 const PdfSummaryTool = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -12,12 +12,31 @@ const PdfSummaryTool = () => {
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string || '');
+      reader.onerror = (e) => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
+  };
+
   const handleGenerate = async () => {
     if (!file) return;
     setLoading(true);
     try {
-      const result = await mockGeneratePdfSummary(file.name, length);
+      let fileContent = "";
+      try {
+        fileContent = await readFileContent(file);
+      } catch (err) {
+        console.error("FileReader error, falling back to name only:", err);
+        fileContent = "Document content not available. Please answer based on filename: " + file.name;
+      }
+      const result = await generatePdfSummary(file.name, fileContent, length);
       setSummary(result.summary);
+    } catch (err: any) {
+      console.error(err);
+      setSummary("Error generating summary: " + (err.message || err));
     } finally {
       setLoading(false);
     }

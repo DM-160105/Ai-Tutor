@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, FileText, Send } from "lucide-react";
-import { mockAskFileQuestion, FileQuestionResult } from "@/api/toolsApi";
+import { askFileQuestion, FileQuestionResult } from "@/api/toolsApi";
 
 const FileQuestionTool = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -10,6 +10,15 @@ const FileQuestionTool = () => {
   const [conversation, setConversation] = useState<FileQuestionResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string || '');
+      reader.onerror = (e) => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
+  };
 
   const handleAsk = async () => {
     setError('');
@@ -24,9 +33,19 @@ const FileQuestionTool = () => {
 
     setLoading(true);
     try {
-      const result = await mockAskFileQuestion(file.name, question);
+      let fileContent = "";
+      try {
+        fileContent = await readFileContent(file);
+      } catch (err) {
+        console.error("FileReader error, falling back to name only:", err);
+        fileContent = "Document content not available. Please answer based on filename: " + file.name;
+      }
+      const result = await askFileQuestion(file.name, fileContent, question);
       setConversation(prev => [...prev, result]);
       setQuestion('');
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'An error occurred while answering your question.');
     } finally {
       setLoading(false);
     }
