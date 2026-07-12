@@ -3,8 +3,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const stabilityApiKey = Deno.env.get('STABILITY_API_KEY');
 const hfApiKey = Deno.env.get('HUGGINGFACE_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -90,149 +88,119 @@ serve(async (req) => {
       }
     }
     
-    // 1. Try Stability AI
-if (!imageUrl && stabilityApiKey) {
-  try {
-    console.log('🔍 Trying Stability AI...');
-    console.log('📤 Prompt:', imagePrompt);
+    // 1. Fallback to Hugging Face FLUX.1-dev via router
+    if (!imageUrl && hfApiKey) {
+      try {
+        console.log('🔁 Fallback: Trying Hugging Face FLUX.1-dev via router...');
+        console.log('📤 Prompt:', imagePrompt);
 
-    const formData = new FormData();
-    formData.append('prompt', imagePrompt);
-    formData.append('output_format', 'png');
+        const fluxResponse = await fetch(
+          "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-dev",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${hfApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              inputs: imagePrompt,
+            }),
+          },
+        );
 
-    const stabilityResponse = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${stabilityApiKey}`,
-        'Accept': 'application/json'
-      },
-      body: formData
-    });
+        console.log('📥 FLUX.1-dev Response Status:', fluxResponse.status);
 
-    console.log('📥 Stability Response Status:', stabilityResponse.status);
-    const rawText = await stabilityResponse.text();
-    console.log('🧾 Stability Response Body:', rawText);
-
-    if (stabilityResponse.ok) {
-      const stabilityData = JSON.parse(rawText);
-      if (stabilityData.image) {
-        imageUrl = stabilityData.image;
-        console.log('✅ Stability AI returned image.');
+        if (fluxResponse.ok) {
+          const buffer = await fluxResponse.arrayBuffer();
+          const base64Image =
+            `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(buffer)))}`;
+          imageUrl = base64Image;
+          console.log('✅ Hugging Face FLUX.1-dev (router) returned image.');
+        } else {
+          const errText = await fluxResponse.text();
+          console.error('FLUX.1-dev Router Error Response:', errText);
+        }
+      } catch (error) {
+        console.error('❌ Hugging Face FLUX generation error (router):', error);
       }
     }
-  } catch (error) {
-    console.error('❌ Stability AI error:', error);
-  }
-}
-
-// 2. Fallback to Hugging Face FLUX.1-dev via router
-if (!imageUrl && hfApiKey) {
-  try {
-    console.log('🔁 Fallback: Trying Hugging Face FLUX.1-dev via router...');
-    console.log('📤 Prompt:', imagePrompt);
-
-    const fluxResponse = await fetch(
-      "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-dev",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${hfApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: imagePrompt,
-          // optional parameters:
-          // parameters: { guidance_scale: 3.5, num_inference_steps: 28 }
-        }),
-      },
-    );
-
-    console.log('📥 FLUX.1-dev Response Status:', fluxResponse.status);
-
-    if (fluxResponse.ok) {
-      const buffer = await fluxResponse.arrayBuffer();
-      const base64Image =
-        `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(buffer)))}`;
-      imageUrl = base64Image;
-      console.log('✅ Hugging Face FLUX.1-dev (router) returned image.');
-    } else {
-      const errText = await fluxResponse.text();
-      console.error('FLUX.1-dev Router Error Response:', errText);
-    }
-  } catch (error) {
-    console.error('❌ Hugging Face FLUX generation error (router):', error);
-  }
-}
     
-if (imageUrl && imageUrl.startsWith('data:image')) {
-  try {
-    const base64Data = imageUrl.split(',')[1];
-    const binary = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-    const fileName = `flux-fallback-${crypto.randomUUID()}.png`;
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('generated-images') // change to your bucket name if different
-      .upload(`generated/${fileName}`, binary.buffer, {
-        contentType: 'image/png',
-        upsert: false,
-      });
-
-    if (!uploadError && uploadData?.path) {
-      const { data: publicUrlData } = supabase.storage
-        .from('generated-images')
-        .getPublicUrl(uploadData.path);
-      imageUrl = publicUrlData.publicUrl;
-      console.log('✅ Uploaded FLUX fallback image to Supabase:', imageUrl);
-    } else {
-      console.error('❌ Upload failed:', uploadError);
-    }
-  } catch (uploadErr) {
-    console.error('⚠️ Error uploading FLUX image to Supabase:', uploadErr);
-  }
-}
-
-// 3. If still no image, throw error
-if (!imageUrl) {
-  throw new Error('Image generation failed using both Stability AI and Hugging Face.');
-}
-    let explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
-    if (openAIApiKey) {
+    if (imageUrl && imageUrl.startsWith('data:image')) {
       try {
-        const explanationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        const base64Data = imageUrl.split(',')[1];
+        const binary = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        const fileName = `flux-fallback-${crypto.randomUUID()}.png`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('generated-images')
+          .upload(`generated/${fileName}`, binary.buffer, {
+            contentType: 'image/png',
+            upsert: false,
+          });
+
+        if (!uploadError && uploadData?.path) {
+          const { data: publicUrlData } = supabase.storage
+            .from('generated-images')
+            .getPublicUrl(uploadData.path);
+          imageUrl = publicUrlData.publicUrl;
+          console.log('✅ Uploaded FLUX fallback image to Supabase:', imageUrl);
+        } else {
+          console.error('❌ Upload failed:', uploadError);
+        }
+      } catch (uploadErr) {
+        console.error('⚠️ Error uploading FLUX image to Supabase:', uploadErr);
+      }
+    }
+
+    // 2. If still no image, throw error
+    if (!imageUrl) {
+      throw new Error('Image generation failed using both Gemini and Hugging Face.');
+    }
+
+    let explanation = `This image shows an educational illustration about ${topic} in the context of ${subject}.`;
+    if (geminiApiKey) {
+      try {
+        console.log('📝 Generating explanation with Gemini...');
+        const promptText = `You are an expert educator specializing in ${subject}. Provide comprehensive, clear explanations that help students understand complex concepts through visual learning.
+        
+        Provide a detailed explanation about "${topic}" in the context of ${subject}. ${description ? `Additional context: ${description}. ` : ''}
+
+        Please structure your response with:
+        1. A clear definition or overview
+        2. Key components or elements
+        3. How it works or why it's important
+        4. Real-world applications or examples
+        5. Common misconceptions or things to remember
+
+        Make it educational, engaging, and suitable for visual learning. The explanation should complement a visual diagram or illustration.`;
+
+        const explanationResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'system',
-                content: `You are an expert educator specializing in ${subject}. Provide comprehensive, clear explanations that help students understand complex concepts through visual learning.`
-              },
-              {
-                role: 'user',
-                content: `Provide a detailed explanation about "${topic}" in the context of ${subject}. ${description ? `Additional context: ${description}. ` : ''}
-
-                Please structure your response with:
-                1. A clear definition or overview
-                2. Key components or elements
-                3. How it works or why it's important
-                4. Real-world applications or examples
-                5. Common misconceptions or things to remember
-
-                Make it educational, engaging, and suitable for visual learning. The explanation should complement a visual diagram or illustration.`
-              }
-            ],
-            max_tokens: 1500,
-            temperature: 0.7,
-          }),
+            contents: [{
+              parts: [{
+                text: promptText
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1500,
+            }
+          })
         });
 
         if (explanationResponse.ok) {
           const explanationData = await explanationResponse.json();
-          explanation = explanationData.choices[0].message.content;
+          if (explanationData.candidates?.[0]?.content?.parts?.[0]?.text) {
+            explanation = explanationData.candidates[0].content.parts[0].text;
+            console.log('✅ Gemini successfully generated explanation.');
+          }
+        } else {
+          const errText = await explanationResponse.text();
+          console.error('Gemini explanation error response:', errText);
         }
       } catch (error) {
         console.error('Explanation generation error:', error);
